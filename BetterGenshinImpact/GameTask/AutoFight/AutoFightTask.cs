@@ -359,6 +359,47 @@ public class AutoFightTask : ISoloTask
                         }
 
                         #region 每个命令的跳过战斗判定
+                                                
+                        bool commandWithSkill = false;
+                        for (int j = 0; i+j < combatCommands.Count; j++)
+                        {
+                            var commandCompare =  combatCommands[i+j];
+                            if (command.Name != commandCompare.Name)
+                                break;
+                            if (
+                                commandCompare.Method == Method.Skill ||
+                                ((commandCompare.Method == Method.KeyDown ||
+                                  commandCompare.Method == Method.KeyUp ||
+                                  commandCompare.Method == Method.KeyPress ) &&
+                                 string.Equals(commandCompare.Args![0].ToLower() , "e")))
+                            {
+                                commandWithSkill = true;
+                                break;
+                            }
+                        }
+                        for (int j = 0; i-j >=0; j++)
+                        {
+                            var commandCompare =  combatCommands[i-j];
+                            if (command.Name != commandCompare.Name)
+                                break;
+                            if (
+                                commandCompare.Method == Method.Skill ||
+                                ((commandCompare.Method == Method.KeyDown ||
+                                  commandCompare.Method == Method.KeyUp ||
+                                  commandCompare.Method == Method.KeyPress ) &&
+                                 string.Equals(commandCompare.Args![0].ToLower() , "e")))
+                            {
+                                commandWithSkill = true;
+                                break;
+                            }
+                        }
+                        
+                        // Logger.LogInformation("{command.Name}  {commandWithSkill} {command.Method}",
+                        //     command.Name, commandWithSkill, command.Method.Alias[0]);
+                        // Logger.LogInformation("lastFightName = {lastFightName}",lastFightName);
+                        // Logger.LogInformation("skipFightName = {skipFightName}",skipFightName);
+                        // Logger.LogInformation("allCanBeSkipped = {allCanBeSkipped}",allCanBeSkipped);
+    
 
                         // 判断是否满足跳过条件:
                         // 1.上一次成功执行命令的最后执行角色不是这次的执行角色
@@ -368,7 +409,7 @@ public class AutoFightTask : ISoloTask
                                 (lastFightName == command.Name &&
                                  // 且未跳过(成功执行)了,则不进行跳过判定
                                  skipFightName == "")
-                            &&
+                            && commandWithSkill &&
                             // 且这次执行的角色包含在可跳过的角色列表中
                             (allCanBeSkipped || canBeSkippedAvatarNames.Contains(command.Name))
                            )
