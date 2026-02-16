@@ -309,6 +309,7 @@ public class AutoFightTask : ISoloTask
         var times = 0;
         async Task<bool> recall()
         {
+            Logger.LogInformation("recall  {text} ",times);
             times+=1;
             if (times <= 2) return false;
             var result = await CheckFightFinish(100, 450);
@@ -543,6 +544,8 @@ public class AutoFightTask : ISoloTask
                     }
                 }
                 EndOfLoop: {}
+                Logger.LogInformation("goto EndOfLoop;");
+
             }
             catch (Exception e)
             {
@@ -694,7 +697,6 @@ public class AutoFightTask : ISoloTask
                         await Delay(200, ct);
                         if (picker.TrySwitch(10))
                         {
-                            picker.RefreshSkillCd();
                             await picker.WaitSkillCd(ct);
                             picker.UseSkill(true);
                             await Delay(50, ct);
@@ -806,7 +808,7 @@ public class AutoFightTask : ISoloTask
 
         if (_taskParam is { PickDropsAfterFightEnabled: true } )
         {
-            // 执行扫描掉落物光柱并靠近的功能
+            // 执行自动拾取掉落物的功能
             await new ScanPickTask().Start(ct);
         }
     }

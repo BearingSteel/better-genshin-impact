@@ -509,11 +509,11 @@ namespace BetterGenshinImpact.GameTask.AutoFight
 
                             if (guardianAvatar.Name == "枫原万叶")
                             {
-                                await Delay(50, ct);
+                                Sleep(50, ct);
                                 Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
-                                await Delay(50, ct);
+                                Sleep(50, ct);
                                 Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
-                                await Delay(200, ct);
+                                Sleep(200, ct);
                             }
                             return null;
                         }
