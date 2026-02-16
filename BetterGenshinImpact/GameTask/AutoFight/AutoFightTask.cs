@@ -295,9 +295,28 @@ public class AutoFightTask : ISoloTask
         var detectDelayTime = _finishDetectConfig.DetectDelayTime;
         
         //盾奶优先功能角色预处理
-        var guardianAvatar = string.IsNullOrWhiteSpace(_taskParam.GuardianAvatar) ? null : combatScenes.SelectAvatar(int.Parse(_taskParam.GuardianAvatar));
-        
+        var guardianAvatars = new List<Avatar>();
+        if (_taskParam.GuardianAvatar.Contains('，'))
+        {
+            foreach (var se in _taskParam.GuardianAvatar.Split("，"))
+            {
+                guardianAvatars.Add(combatScenes.SelectAvatar(int.Parse(se)));
+            }
+        }
+
         AutoFightSeek.RotationCount= 0; // 重置旋转次数
+
+        var times = 0;
+        async Task<bool> recall()
+        {
+            Logger.LogInformation("recall  {text} ",times);
+            times+=1;
+            if (times <= 2) return false;
+            var result = await CheckFightFinish(100, 450);
+            if(true) 
+                fightEndFlag = result;
+            return result;
+        }
         
         // 战斗操作
         var fightTask = Task.Run(async () =>
@@ -336,10 +355,19 @@ public class AutoFightTask : ISoloTask
                         var lastCommand = i == 0 ? command : combatCommands[i - 1];
                         
                         #region 盾奶位技能优先功能
-                        
-                        var skipModel = guardianAvatar != null && lastFightName != command.Name;
-                        if (skipModel) await AutoFightSkill.EnsureGuardianSkill(guardianAvatar,lastCommand,lastFightName,
-                            _taskParam.GuardianAvatar,_taskParam.GuardianAvatarHold,5,ct,_taskParam.GuardianCombatSkip,_taskParam.BurstEnabled);
+
+                        foreach (var guardianAvatar in guardianAvatars)
+                        {
+                            var skipModel = guardianAvatar != null && ((i==0)||lastFightName != command.Name);
+                            if (skipModel) {
+                                var result = await AutoFightSkill.EnsureGuardianSkill(guardianAvatar,lastCommand,lastFightName,
+                                    _taskParam.GuardianAvatar,_taskParam.GuardianAvatarHold,5,ct,_taskParam.GuardianCombatSkip,_taskParam.BurstEnabled,recall);
+                                if (result == true)
+                                {
+                                    goto EndOfLoop;
+                                }
+                            }
+                        }
                         var avatar = combatScenes.SelectAvatar(command.Name);
                         
                         #endregion
@@ -353,8 +381,15 @@ public class AutoFightTask : ISoloTask
                         
                         #endregion
                         
-                        if (avatar is null || (avatar.Name == guardianAvatar?.Name && (_taskParam.GuardianCombatSkip || _taskParam.BurstEnabled)))
+                        if (avatar is null || (guardianAvatars.Any(a => a.Name == avatar.Name) && (_taskParam.GuardianCombatSkip || _taskParam.BurstEnabled)))
                         {
+                            //四个角色都是盾奶角色的话，
+                            var  isAllGuardian = false;
+                            for (int j = 1; j<=combatScenes.AvatarCount && !isAllGuardian; j++)
+                            {
+                                isAllGuardian = guardianAvatars.Any(a => a.Name == combatScenes.SelectAvatar(j).Name);
+                            }
+                            if(!isAllGuardian)
                             continue;
                         }
 
@@ -459,8 +494,8 @@ public class AutoFightTask : ISoloTask
                             fightEndFlag = await CheckFightFinish(delayTime, detectDelayTime);
                         }
                         #endregion
-                        
-                        command.Execute(combatScenes, lastCommand);
+
+                        command.Execute(combatScenes, lastCommand,recall);
                         //统计战斗人次
                         if (i == combatCommands.Count - 1 || command.Name != combatCommands[i + 1].Name)
                         {
@@ -508,6 +543,9 @@ public class AutoFightTask : ISoloTask
                         break;
                     }
                 }
+                EndOfLoop: {}
+                Logger.LogInformation("goto EndOfLoop;");
+
             }
             catch (Exception e)
             {
