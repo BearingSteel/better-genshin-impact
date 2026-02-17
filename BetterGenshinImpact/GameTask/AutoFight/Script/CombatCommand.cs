@@ -86,12 +86,6 @@ public class CombatCommand
         }
         else
         {
-            
-            if (methodToRun?.Invoke().Result == true)
-            {
-                return;
-            }
-            
             // 其余情况要进行角色切换
             avatar = combatScenes.SelectAvatar(Name);
             if (avatar == null)
@@ -119,6 +113,10 @@ public class CombatCommand
                 {
                     avatar.Switch();
                 }
+            }
+            if (methodToRun?.Invoke().Result == true)
+            {
+                return;
             }
         }
         Execute(avatar);
