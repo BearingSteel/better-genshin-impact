@@ -309,7 +309,6 @@ public class AutoFightTask : ISoloTask
         var times = 0;
         async Task<bool> recall()
         {
-            Logger.LogInformation("recall  {text} ",times);
             times+=1;
             if (times <= 2) return false;
             var result = await CheckFightFinish(100, 450);
@@ -544,8 +543,6 @@ public class AutoFightTask : ISoloTask
                     }
                 }
                 EndOfLoop: {}
-                Logger.LogInformation("goto EndOfLoop;");
-
             }
             catch (Exception e)
             {
