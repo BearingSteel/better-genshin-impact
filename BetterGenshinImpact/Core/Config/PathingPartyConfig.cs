@@ -63,7 +63,7 @@ public partial class PathingPartyConfig : ObservableObject
     // private string _anemoCollectAvatarIndex = string.Empty;
 
     [JsonIgnore]
-    public List<string> AvatarIndexList { get; } = ["", "1", "2", "3", "4"];
+    public List<string> AvatarIndexList { get; } = ["", "1", "2", "3", "4", "1，2", "1，2，3", "1，2，3，4"];
 
     // 只在传送传送点时复活
     [ObservableProperty]
