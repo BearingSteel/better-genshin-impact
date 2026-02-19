@@ -718,6 +718,13 @@ public class Avatar
 
         return 0;
     }
+    
+    
+    public double RefreshSkillCd()
+    {
+        using var region =  CaptureToRectArea();
+        return GetSkillCurrentCd(region);
+    }
 
     /// <summary>
     /// 等待技能CD
