@@ -867,7 +867,7 @@
                                   HorizontalContentAlignment="Center"
                                   VerticalContentAlignment="Center"
                                   Margin="10,0,10,0"
-                                  ItemsSource="{Binding Source={x:Static pages:TaskSettingsPageViewModel.AvatarIndexList}}"
+                                  ItemsSource="{Binding Source={x:Static pages:TaskSettingsPageViewModel.MultiAvatarIndexList}}"
                                   SelectedItem="{Binding Config.AutoFightConfig.GuardianAvatar, Mode=TwoWay}" />
 
                         <ui:TextBlock Grid.Row="0"

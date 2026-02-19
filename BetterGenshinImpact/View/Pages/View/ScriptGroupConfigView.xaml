@@ -1252,7 +1252,7 @@
                                   HorizontalContentAlignment="Center"
                                   VerticalContentAlignment="Center"
                                   Margin="10,0,10,0"
-                                  ItemsSource="{Binding PathingConfig.AvatarIndexList}"
+                                  ItemsSource="{Binding PathingConfig.MultiAvatarIndexList}"
                                   SelectedItem="{Binding PathingConfig.AutoFightConfig.GuardianAvatar, Mode=TwoWay}" />
 
                            <ui:TextBlock Grid.Row="0"
