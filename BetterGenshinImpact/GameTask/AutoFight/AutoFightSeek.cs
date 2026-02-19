@@ -451,9 +451,9 @@ namespace BetterGenshinImpact.GameTask.AutoFight
 
     public class AutoFightSkill
     {
-        public static async Task EnsureGuardianSkill(Avatar guardianAvatar, CombatCommand command, string lastFightName,
+        public static async Task<bool?> EnsureGuardianSkill(Avatar guardianAvatar, CombatCommand command, string lastFightName,
             string guardianAvatarName, bool guardianAvatarHold, int retryCount, CancellationToken ct,bool guardianCombatSkip = false,
-            bool burstEnabled = false)
+            bool burstEnabled = false, Func<Task<bool>>? methodToRun = null)
         {
             int attempt = 0;
 
@@ -463,6 +463,8 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                 {
                     if (guardianAvatar.TrySwitch(10, false))
                     {
+                        if (methodToRun?.Invoke().Result == true)
+                            return true;
                         guardianAvatar.ManualSkillCd = -1;
                         if (await AvatarSkillAsync(Logger, guardianAvatar, false, 1, ct))
                         {
@@ -472,7 +474,7 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                                 Logger.LogInformation("优先第 {text} 盾奶位 {GuardianAvatar} 战技Cd检测：{cd} 秒", guardianAvatarName,
                                     guardianAvatar.Name, cd1);
                                 guardianAvatar.ManualSkillCd = -1;
-                                return;
+                                return null;
                             }
                         }
             
@@ -503,7 +505,17 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                                 guardianAvatarName, guardianAvatar.Name,"成功");
                             guardianAvatar.LastSkillTime = DateTime.UtcNow;
                             guardianAvatar.ManualSkillCd = -1;
-                            return;
+
+
+                            if (guardianAvatar.Name == "枫原万叶")
+                            {
+                                await Delay(50, ct);
+                                Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
+                                await Delay(50, ct);
+                                Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
+                                await Delay(200, ct);
+                            }
+                            return null;
                         }
                         
                         Logger.LogInformation("优先第 {text} 盾奶位 {GuardianAvatar} 释放战技：失败重试 {attempt} 次",
@@ -552,6 +564,8 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                         
                         if (guardianAvatar.TrySwitch(8, false))
                         {
+                            if (methodToRun?.Invoke().Result == true)
+                                return true;
                             Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
                             Sleep(500, ct);
                             Simulation.ReleaseAllKey();
@@ -579,6 +593,8 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                     }
                 }
             }
+
+            return null;
         }
         
         //新方法，备用，非OCR识别，判断色块进行，速度更快
