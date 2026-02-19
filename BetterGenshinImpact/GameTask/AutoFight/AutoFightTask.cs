@@ -694,6 +694,7 @@ public class AutoFightTask : ISoloTask
                         await Delay(200, ct);
                         if (picker.TrySwitch(10))
                         {
+                            picker.RefreshSkillCd();
                             await picker.WaitSkillCd(ct);
                             picker.UseSkill(true);
                             await Delay(50, ct);
