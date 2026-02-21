@@ -359,8 +359,13 @@ public class AutoFightTask : ISoloTask
                         {
                             var skipModel = guardianAvatar != null && ((i==0)||lastFightName != command.Name);
                             if (skipModel) {
-                                var result = await AutoFightSkill.EnsureGuardianSkill(guardianAvatar,lastCommand,lastFightName,
-                                    _taskParam.GuardianAvatar,_taskParam.GuardianAvatarHold,5,ct,_taskParam.GuardianCombatSkip,_taskParam.BurstEnabled,recall);
+                                var result = await AutoFightSkill.EnsureGuardianSkill(guardianAvatar, lastCommand,
+                                    lastFightName,
+                                    _taskParam.GuardianAvatar, _taskParam.GuardianAvatarHold,
+                                    guardianAvatar.Name == "枫原万叶" ? 1 : 5,
+                                    ct,
+                                    _taskParam.GuardianCombatSkip,
+                                    _taskParam.BurstEnabled, recall);
                                 guardianAvatar.RefreshSkillCd();
                                 if (result == true)
                                 {
