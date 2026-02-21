@@ -361,6 +361,7 @@ public class AutoFightTask : ISoloTask
                             if (skipModel) {
                                 var result = await AutoFightSkill.EnsureGuardianSkill(guardianAvatar,lastCommand,lastFightName,
                                     _taskParam.GuardianAvatar,_taskParam.GuardianAvatarHold,5,ct,_taskParam.GuardianCombatSkip,_taskParam.BurstEnabled,recall);
+                                guardianAvatar.RefreshSkillCd();
                                 if (result == true)
                                 {
                                     goto EndOfLoop;
@@ -699,7 +700,7 @@ public class AutoFightTask : ISoloTask
                             picker.UseSkill(true);
                             await Delay(50, ct);
                             Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
-                            await Delay(1500, ct);
+                            await Delay(1000, ct);
                         }
                     }
                     else

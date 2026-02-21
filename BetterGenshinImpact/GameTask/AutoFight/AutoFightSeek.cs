@@ -509,11 +509,17 @@ namespace BetterGenshinImpact.GameTask.AutoFight
 
                             if (guardianAvatar.Name == "枫原万叶")
                             {
-                                await Delay(50, ct);
+                                await Delay(400, ct);
                                 Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
                                 await Delay(50, ct);
-                                Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
-                                await Delay(200, ct);
+                            }
+                            else if (guardianAvatar.Name == "玛薇卡"
+                                     ||guardianAvatar.Name == "爱可菲"
+                                     ||guardianAvatar.Name == "哥伦比娅")
+                            {
+                                await Delay(50, ct);
+                                Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
+                                await Delay(400, ct);
                             }
                             return null;
                         }
