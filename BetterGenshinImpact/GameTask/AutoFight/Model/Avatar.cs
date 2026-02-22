@@ -24,6 +24,7 @@ using BetterGenshinImpact.GameTask.AutoGeniusInvokation.Model;
 using BetterGenshinImpact.GameTask.AutoPathing;
 using BetterGenshinImpact.GameTask.AutoPathing.Model;
 using BetterGenshinImpact.GameTask.AutoPathing.Model.Enum;
+using Wpf.Ui.Extensions;
 
 namespace BetterGenshinImpact.GameTask.AutoFight.Model;
 
@@ -723,7 +724,13 @@ public class Avatar
     public double RefreshSkillCd()
     {
         using var region =  CaptureToRectArea();
-        return GetSkillCurrentCd(region);
+        var result =  GetSkillCurrentCd(region);
+        if (result <= 0)
+        {
+            OcrSkillCd = DateTime.UtcNow;
+            LastSkillTime = new DateTime(2026, 1, 1);
+        }
+        return result;
     }
 
     /// <summary>

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ using BetterGenshinImpact.GameTask.AutoPick.Assets;
 using BetterGenshinImpact.Core.Recognition;
 using BetterGenshinImpact.GameTask.Common.Element.Assets;
 using BetterGenshinImpact.GameTask.Common;
+using Vanara.Extensions.Reflection;
 
 namespace BetterGenshinImpact.GameTask.AutoFight;
 
@@ -35,6 +37,7 @@ public class AutoFightTask : ISoloTask
     private readonly AutoFightParam _taskParam;
 
     private readonly CombatScriptBag _combatScriptBag;
+    private readonly string _firstLine ;
 
     private CancellationToken _ct;
 
@@ -199,6 +202,7 @@ public class AutoFightTask : ISoloTask
     {
         _taskParam = taskParam;
         _combatScriptBag = CombatScriptParser.ReadAndParse(_taskParam.CombatStrategyPath);
+        _firstLine = File.ReadLines(_taskParam.CombatStrategyPath).FirstOrDefault() ?? "";
 
         if (_taskParam.FightFinishDetectEnabled)
         {
@@ -355,24 +359,64 @@ public class AutoFightTask : ISoloTask
                         
                         #region 盾奶位技能优先功能
 
-                        foreach (var guardianAvatar in guardianAvatars)
+                        foreach (var item in _firstLine.ToCharArray())
                         {
-                            var skipModel = guardianAvatar != null && ((i==0)||lastFightName != command.Name);
-                            if (skipModel) {
-                                var result = await AutoFightSkill.EnsureGuardianSkill(guardianAvatar, lastCommand,
-                                    lastFightName,
-                                    _taskParam.GuardianAvatar, _taskParam.GuardianAvatarHold,
-                                    guardianAvatar.Name == "枫原万叶" ? 1 : 5,
-                                    ct,
-                                    _taskParam.GuardianCombatSkip,
-                                    _taskParam.BurstEnabled, recall);
-                                guardianAvatar.RefreshSkillCd();
-                                if (result == true)
+                            bool? result = false;
+                            bool skipModel = false;
+                            Avatar? guardianAvatar = null;
+                            if (item >= 'a' && item <= 'd')
+                            {
+                                
+                                guardianAvatar = guardianAvatars[item - 'a'];
+                                skipModel =  ((i == 0) || lastFightName != command.Name);
+                                if (skipModel)
                                 {
-                                    goto EndOfLoop;
+                                    result = await AutoFightSkill.EnsureGuardianSkill(guardianAvatar, lastCommand,
+                                        lastFightName,
+                                        _taskParam.GuardianAvatar, _taskParam.GuardianAvatarHold,
+                                        guardianAvatar.Name == "枫原万叶" ? 1 : 5,
+                                        ct,
+                                        _taskParam.GuardianCombatSkip,
+                                        _taskParam.BurstEnabled, recall);
                                 }
                             }
+
+                            if (item >= 'A' && item <= 'D')
+                            {
+                                
+                                guardianAvatar = guardianAvatars[item - 'A'];
+                                skipModel = ((i == 0) || lastFightName != command.Name);
+                                if (skipModel)
+                                {
+                                    
+                                    if (guardianAvatar.Name == combatScenes.CurrentAvatar(true, CaptureToRectArea(), ct))
+                                    {
+                                        result = await recall();
+                                        if (result != true)
+                                        {
+                                            Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
+                                            await Delay(100,ct);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        result = await AutoFightSkill.EnsureGuardianBurst(guardianAvatar, lastCommand,
+                                            lastFightName,
+                                            _taskParam.GuardianAvatar, _taskParam.GuardianAvatarHold,
+                                            guardianAvatar.Name == "枫原万叶" ? 1 : 5,
+                                            ct,
+                                            _taskParam.GuardianCombatSkip,
+                                            _taskParam.BurstEnabled, recall);
+                                    }
+                                    
+                                }
+                            }
+                            if (result == true)
+                            {
+                                goto EndOfLoop;
+                            }
                         }
+
                         var avatar = combatScenes.SelectAvatar(command.Name);
                         
                         #endregion

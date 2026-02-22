@@ -480,7 +480,15 @@ namespace BetterGenshinImpact.GameTask.AutoFight
             
                         guardianAvatar.UseSkill(guardianAvatarHold);
                         var imageAfterUseSkill = CaptureToRectArea();
+                        guardianAvatar.RefreshSkillCd();
                         
+                        if (guardianAvatar.Name == "枫原万叶")
+                        {
+                            Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
+                            await Delay(800, ct);
+                            return null;
+                        }
+
                         var retry = 50;
                         while (!(await AvatarSkillAsync(Logger, guardianAvatar, false, 1, ct,imageAfterUseSkill)) && retry > 0)
                         {
@@ -506,21 +514,6 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                             guardianAvatar.LastSkillTime = DateTime.UtcNow;
                             guardianAvatar.ManualSkillCd = -1;
 
-
-                            if (guardianAvatar.Name == "枫原万叶")
-                            {
-                                await Delay(400, ct);
-                                Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
-                                await Delay(50, ct);
-                            }
-                            else if (guardianAvatar.Name == "玛薇卡"
-                                     ||guardianAvatar.Name == "爱可菲"
-                                     ||guardianAvatar.Name == "哥伦比娅")
-                            {
-                                await Delay(50, ct);
-                                Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
-                                await Delay(400, ct);
-                            }
                             return null;
                         }
                         
@@ -535,8 +528,13 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                     attempt++;
                 }
             }
-            else if (burstEnabled)
-            {
+            return null;
+        }
+        
+        public static async Task<bool?> EnsureGuardianBurst(Avatar guardianAvatar, CombatCommand command, string lastFightName,
+                string guardianAvatarName, bool guardianAvatarHold, int retryCount, CancellationToken ct,bool guardianCombatSkip = false,
+                bool burstEnabled = false, Func<Task<bool>>? methodToRun = null){
+          if (burstEnabled) {
                 using var image = CaptureToRectArea();
                 if (!guardianAvatar.IsActive(image))
                 {
