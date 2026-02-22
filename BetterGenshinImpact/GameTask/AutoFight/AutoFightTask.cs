@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ using BetterGenshinImpact.GameTask.AutoPick.Assets;
 using BetterGenshinImpact.Core.Recognition;
 using BetterGenshinImpact.GameTask.Common.Element.Assets;
 using BetterGenshinImpact.GameTask.Common;
+using Vanara.Extensions.Reflection;
 
 namespace BetterGenshinImpact.GameTask.AutoFight;
 
@@ -35,6 +37,7 @@ public class AutoFightTask : ISoloTask
     private readonly AutoFightParam _taskParam;
 
     private readonly CombatScriptBag _combatScriptBag;
+    private readonly string _firstLine ;
 
     private CancellationToken _ct;
 
@@ -199,6 +202,7 @@ public class AutoFightTask : ISoloTask
     {
         _taskParam = taskParam;
         _combatScriptBag = CombatScriptParser.ReadAndParse(_taskParam.CombatStrategyPath);
+        _firstLine = File.ReadLines(_taskParam.CombatStrategyPath).FirstOrDefault() ?? "";
 
         if (_taskParam.FightFinishDetectEnabled)
         {
@@ -295,9 +299,27 @@ public class AutoFightTask : ISoloTask
         var detectDelayTime = _finishDetectConfig.DetectDelayTime;
         
         //盾奶优先功能角色预处理
-        var guardianAvatar = string.IsNullOrWhiteSpace(_taskParam.GuardianAvatar) ? null : combatScenes.SelectAvatar(int.Parse(_taskParam.GuardianAvatar));
-        
+        var guardianAvatars = new List<Avatar>();
+        if (_taskParam.GuardianAvatar.Contains('，'))
+        {
+            foreach (var se in _taskParam.GuardianAvatar.Split("，"))
+            {
+                guardianAvatars.Add(combatScenes.SelectAvatar(int.Parse(se)));
+            }
+        }
+
         AutoFightSeek.RotationCount= 0; // 重置旋转次数
+
+        var times = 0;
+        async Task<bool> recall()
+        {
+            times+=1;
+            if (times <= 2) return false;
+            var result = await CheckFightFinish(100, 450);
+            if(true) 
+                fightEndFlag = result;
+            return result;
+        }
         
         // 战斗操作
         var fightTask = Task.Run(async () =>
@@ -336,10 +358,65 @@ public class AutoFightTask : ISoloTask
                         var lastCommand = i == 0 ? command : combatCommands[i - 1];
                         
                         #region 盾奶位技能优先功能
-                        
-                        var skipModel = guardianAvatar != null && lastFightName != command.Name;
-                        if (skipModel) await AutoFightSkill.EnsureGuardianSkill(guardianAvatar,lastCommand,lastFightName,
-                            _taskParam.GuardianAvatar,_taskParam.GuardianAvatarHold,5,ct,_taskParam.GuardianCombatSkip,_taskParam.BurstEnabled);
+
+                        foreach (var item in _firstLine.ToCharArray())
+                        {
+                            bool? result = false;
+                            bool skipModel = false;
+                            Avatar? guardianAvatar = null;
+                            if (item >= 'a' && item <= 'd')
+                            {
+                                
+                                guardianAvatar = guardianAvatars[item - 'a'];
+                                skipModel =  ((i == 0) || lastFightName != command.Name);
+                                if (skipModel)
+                                {
+                                    result = await AutoFightSkill.EnsureGuardianSkill(guardianAvatar, lastCommand,
+                                        lastFightName,
+                                        _taskParam.GuardianAvatar, _taskParam.GuardianAvatarHold,
+                                        guardianAvatar.Name == "枫原万叶" ? 1 : 5,
+                                        ct,
+                                        _taskParam.GuardianCombatSkip,
+                                        _taskParam.BurstEnabled, recall);
+                                }
+                            }
+
+                            if (item >= 'A' && item <= 'D')
+                            {
+                                
+                                guardianAvatar = guardianAvatars[item - 'A'];
+                                skipModel = ((i == 0) || lastFightName != command.Name);
+                                if (skipModel)
+                                {
+                                    
+                                    if (guardianAvatar.Name == combatScenes.CurrentAvatar(true, CaptureToRectArea(), ct))
+                                    {
+                                        result = await recall();
+                                        if (result != true)
+                                        {
+                                            Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
+                                            await Delay(100,ct);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        result = await AutoFightSkill.EnsureGuardianBurst(guardianAvatar, lastCommand,
+                                            lastFightName,
+                                            _taskParam.GuardianAvatar, _taskParam.GuardianAvatarHold,
+                                            guardianAvatar.Name == "枫原万叶" ? 1 : 5,
+                                            ct,
+                                            _taskParam.GuardianCombatSkip,
+                                            _taskParam.BurstEnabled, recall);
+                                    }
+                                    
+                                }
+                            }
+                            if (result == true)
+                            {
+                                goto EndOfLoop;
+                            }
+                        }
+
                         var avatar = combatScenes.SelectAvatar(command.Name);
                         
                         #endregion
@@ -353,12 +430,60 @@ public class AutoFightTask : ISoloTask
                         
                         #endregion
                         
-                        if (avatar is null || (avatar.Name == guardianAvatar?.Name && (_taskParam.GuardianCombatSkip || _taskParam.BurstEnabled)))
+                        if (avatar is null || (guardianAvatars.Any(a => a.Name == avatar.Name) && (_taskParam.GuardianCombatSkip || _taskParam.BurstEnabled)))
                         {
+                            //四个角色都是盾奶角色的话，
+                            var  isAllGuardian = false;
+                            for (int j = 1; j<=combatScenes.AvatarCount && !isAllGuardian; j++)
+                            {
+                                isAllGuardian = guardianAvatars.Any(a => a.Name == combatScenes.SelectAvatar(j).Name);
+                            }
+                            if(!isAllGuardian)
                             continue;
                         }
 
                         #region 每个命令的跳过战斗判定
+                                                
+                        bool commandWithSkill = false;
+                        for (int j = 0; i+j < combatCommands.Count; j++)
+                        {
+                            var commandCompare =  combatCommands[i+j];
+                            if (command.Name != commandCompare.Name)
+                                break;
+                            if (
+                                commandCompare.Method == Method.Skill ||
+                                ((commandCompare.Method == Method.KeyDown ||
+                                  commandCompare.Method == Method.KeyUp ||
+                                  commandCompare.Method == Method.KeyPress ) &&
+                                 string.Equals(commandCompare.Args![0].ToLower() , "e")))
+                            {
+                                commandWithSkill = true;
+                                break;
+                            }
+                        }
+                        for (int j = 0; i-j >=0; j++)
+                        {
+                            var commandCompare =  combatCommands[i-j];
+                            if (command.Name != commandCompare.Name)
+                                break;
+                            if (
+                                commandCompare.Method == Method.Skill ||
+                                ((commandCompare.Method == Method.KeyDown ||
+                                  commandCompare.Method == Method.KeyUp ||
+                                  commandCompare.Method == Method.KeyPress ) &&
+                                 string.Equals(commandCompare.Args![0].ToLower() , "e")))
+                            {
+                                commandWithSkill = true;
+                                break;
+                            }
+                        }
+                        
+                        // Logger.LogInformation("{command.Name}  {commandWithSkill} {command.Method}",
+                        //     command.Name, commandWithSkill, command.Method.Alias[0]);
+                        // Logger.LogInformation("lastFightName = {lastFightName}",lastFightName);
+                        // Logger.LogInformation("skipFightName = {skipFightName}",skipFightName);
+                        // Logger.LogInformation("allCanBeSkipped = {allCanBeSkipped}",allCanBeSkipped);
+    
 
                         // 判断是否满足跳过条件:
                         // 1.上一次成功执行命令的最后执行角色不是这次的执行角色
@@ -368,7 +493,7 @@ public class AutoFightTask : ISoloTask
                                 (lastFightName == command.Name &&
                                  // 且未跳过(成功执行)了,则不进行跳过判定
                                  skipFightName == "")
-                            &&
+                            && commandWithSkill &&
                             // 且这次执行的角色包含在可跳过的角色列表中
                             (allCanBeSkipped || canBeSkippedAvatarNames.Contains(command.Name))
                            )
@@ -418,8 +543,8 @@ public class AutoFightTask : ISoloTask
                             fightEndFlag = await CheckFightFinish(delayTime, detectDelayTime);
                         }
                         #endregion
-                        
-                        command.Execute(combatScenes, lastCommand);
+
+                        command.Execute(combatScenes, lastCommand,recall);
                         //统计战斗人次
                         if (i == combatCommands.Count - 1 || command.Name != combatCommands[i + 1].Name)
                         {
@@ -467,6 +592,7 @@ public class AutoFightTask : ISoloTask
                         break;
                     }
                 }
+                EndOfLoop: {}
             }
             catch (Exception e)
             {
@@ -618,11 +744,12 @@ public class AutoFightTask : ISoloTask
                         await Delay(200, ct);
                         if (picker.TrySwitch(10))
                         {
+                            picker.RefreshSkillCd();
                             await picker.WaitSkillCd(ct);
                             picker.UseSkill(true);
                             await Delay(50, ct);
                             Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
-                            await Delay(1500, ct);
+                            await Delay(1000, ct);
                         }
                     }
                     else

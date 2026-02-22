@@ -814,12 +814,12 @@
                             <ui:TextBlock Grid.Row="0"
                                           Grid.Column="0"
                                           FontTypography="Body"
-                                          Text="盾奶位角色优先释放技能"
+                                          Text="自动EQ角色优先释放技能"
                                           TextWrapping="Wrap" />
                             <ui:TextBlock Grid.Row="1"
                                           Grid.Column="0"
                                           Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                                          Text="战斗过程实时检测和释放盾奶位角E战技（空选为关闭此功能）"
+                                          Text="战斗过程实时检测和释放自动EQ角色战技cd和大招能量（空选为关闭此功能）"
                                           TextWrapping="Wrap" />
                         </Grid>
                     </ui:CardExpander.Header>
@@ -852,12 +852,12 @@
                         <ui:TextBlock Grid.Row="0"
                                       Grid.Column="0"
                                       FontTypography="Body"
-                                      Text="盾奶位角色在队伍中的位置"
+                                      Text="自动EQ角色在队伍中的位置"
                                       TextWrapping="Wrap" />
                         <ui:TextBlock Grid.Row="1"
                                       Grid.Column="0"
                                       Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                                      Text="实时检测盾奶位战技CD"
+                                      Text="实时检自动EQ战技CD"
                                       TextWrapping="Wrap" />
                         
                         <ComboBox Grid.Row="0"
@@ -867,7 +867,7 @@
                                   HorizontalContentAlignment="Center"
                                   VerticalContentAlignment="Center"
                                   Margin="10,0,10,0"
-                                  ItemsSource="{Binding Source={x:Static pages:TaskSettingsPageViewModel.AvatarIndexList}}"
+                                  ItemsSource="{Binding Source={x:Static pages:TaskSettingsPageViewModel.MultiAvatarIndexList}}"
                                   SelectedItem="{Binding Config.AutoFightConfig.GuardianAvatar, Mode=TwoWay}" />
 
                         <ui:TextBlock Grid.Row="0"
@@ -953,7 +953,7 @@
                                       FontTypography="Body"
                                       HorizontalAlignment="Right"
                                       VerticalAlignment="Center"
-                                      Text="检测盾奶位战技短按或长按，禁用:短按 / 启用:长按"
+                                      Text="检测自动EQ角色战技短按或长按，禁用:短按 / 启用:长按"
                                       TextWrapping="Wrap" 
                                       Style="{StaticResource GuardianVisibilityStyle}"/>
                         

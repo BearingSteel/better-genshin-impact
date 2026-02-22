@@ -64,6 +64,7 @@ public partial class PathingPartyConfig : ObservableObject
 
     [JsonIgnore]
     public List<string> AvatarIndexList { get; } = ["", "1", "2", "3", "4"];
+    public List<string> MultiAvatarIndexList { get; } = ["", "1", "2", "3", "4", "1，2", "1，2，3", "1，2，3，4"];
 
     // 只在传送传送点时复活
     [ObservableProperty]
