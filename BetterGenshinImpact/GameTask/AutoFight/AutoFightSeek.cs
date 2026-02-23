@@ -486,7 +486,6 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                         {
                             Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
                             await Delay(800, ct);
-                            return null;
                         }
 
                         var retry = 50;

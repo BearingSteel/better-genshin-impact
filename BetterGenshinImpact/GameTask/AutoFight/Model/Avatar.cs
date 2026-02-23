@@ -696,7 +696,7 @@ public class Avatar
                 // 若未经过OCR的技能释放,上次时间加上最长的技能时间
                 var maxCd = Math.Max(CombatAvatar.SkillHoldCd, CombatAvatar.SkillCd);
                 var target =
-                    LastSkillTime >= OcrSkillCd
+                    LastSkillTime > OcrSkillCd
                         ? LastSkillTime.AddSeconds(Math.Max(CombatAvatar.SkillHoldCd, CombatAvatar.SkillCd))
                         : OcrSkillCd;
                 var result = now > target ? 0d : (target - now).TotalSeconds;
@@ -721,14 +721,13 @@ public class Avatar
     }
     
     
-    public double RefreshSkillCd()
+    public double RefreshSkillCd(bool force = false)
     {
-        using var region =  CaptureToRectArea();
-        var result =  GetSkillCurrentCd(region);
+        var result = force ? 0 : GetSkillCurrentCd(CaptureToRectArea());
         if (result <= 0)
         {
             OcrSkillCd = DateTime.UtcNow;
-            LastSkillTime = new DateTime(2026, 1, 1);
+            LastSkillTime = OcrSkillCd;
         }
         return result;
     }

@@ -395,7 +395,12 @@ public class AutoFightTask : ISoloTask
                                         if (result != true)
                                         {
                                             Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
-                                            await Delay(100,ct);
+                                            guardianAvatar.Ready();
+                                            if (guardianAvatar.Name == "枫原万叶")
+                                            {
+                                                Logger.LogInformation("万叶一命检查");
+                                                guardianAvatar.RefreshSkillCd();
+                                            }
                                         }
                                     }
                                     else
@@ -732,19 +737,21 @@ public class AutoFightTask : ISoloTask
             {
                 if (picker.Name == "枫原万叶")
                 {
-                    var time = TimeSpan.FromSeconds(picker.GetSkillCdSeconds());
 
-                    // 如果配置了二次拾取，或者不满足跳过条件（上次是万叶且冷却时间>3秒），则执行拾取
-                    bool shouldSkip = lastFightName == picker.Name && time.TotalSeconds > 3;
-                    bool forcePickup = _taskParam.QinDoublePickUp;
-                    
-                    if (forcePickup || !shouldSkip)
+                    Logger.LogInformation("使用 枫原万叶-长E 拾取掉落物");
+                    // await Delay(200, ct);
+                    if (picker.TrySwitch(10))
                     {
-                        Logger.LogInformation("使用 枫原万叶-长E 拾取掉落物");
-                        await Delay(200, ct);
-                        if (picker.TrySwitch(10))
+                        picker.RefreshSkillCd();
+
+                        var time = TimeSpan.FromSeconds(picker.GetSkillCdSeconds());
+                        
+                        // 如果配置了二次拾取，或者不满足跳过条件（上次是万叶且冷却时间>3秒），则执行拾取
+                        bool shouldSkip = time.TotalSeconds > 3;
+                        bool forcePickup = _taskParam.QinDoublePickUp;
+
+                        if (forcePickup || !shouldSkip)
                         {
-                            picker.RefreshSkillCd();
                             await picker.WaitSkillCd(ct);
                             picker.UseSkill(true);
                             await Delay(50, ct);

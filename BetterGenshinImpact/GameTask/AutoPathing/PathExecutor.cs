@@ -542,6 +542,15 @@ public class PathExecutor
         return result;
     }
 
+
+    private async Task<bool> tryEatTask()
+    {
+        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+        await Delay(200, ct);
+        Logger.LogInformation("按Z吃药x2");
+        return true;
+    }
+    
     /// <summary>
     /// 尝试队伍回血，如果单人回血，由于记录检查时是哪位残血，则当作行走位处理。
     /// </summary>
@@ -606,13 +615,18 @@ public class PathExecutor
         }
 
         using var region = CaptureToRectArea();
-        if (Bv.CurrentAvatarIsLowHp(region) && !(await TryPartyHealing() && Bv.CurrentAvatarIsLowHp(region)))
+        if (Bv.CurrentAvatarIsLowHp(region)
+            && !(await tryEatTask() && await tryEatTask() && Bv.CurrentAvatarIsLowHp(region))
+            && !(await tryEatTask() && Bv.CurrentAvatarIsLowHp(region))
+            && !(await TryPartyHealing() && Bv.CurrentAvatarIsLowHp(region)))
         {
             Logger.LogInformation("当前角色血量过低，去七天神像恢复");
             await TpStatueOfTheSeven();
             throw new RetryException("回血完成后重试路线");
         }
-        else if (Bv.ClickIfInReviveModal(region))
+        else if (Bv.ClickIfInReviveModal(region)
+                 && !(await tryEatTask() && await tryEatTask() && await tryEatTask() && Bv.ClickIfInReviveModal(region))
+                 )
         {
             await Bv.WaitForMainUi(ct); // 等待主界面加载完成
             Logger.LogInformation("复苏完成");
