@@ -1118,7 +1118,7 @@ public class PathExecutor
             {
                 SuccessFight++;
             }
-            await Delay(1000, ct);
+            await Delay(100, ct);
         }
     }
 
