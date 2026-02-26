@@ -444,7 +444,7 @@ public class AutoFightTask : ISoloTask
                                 isAllGuardian = guardianAvatars.Any(a => a.Name == combatScenes.SelectAvatar(j).Name);
                             }
                             if(!isAllGuardian)
-                            continue;
+                                continue;
                         }
 
                         #region 每个命令的跳过战斗判定
