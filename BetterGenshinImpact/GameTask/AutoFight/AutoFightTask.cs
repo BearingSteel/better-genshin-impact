@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,9 @@ using BetterGenshinImpact.GameTask.AutoPathing.Model;
 using BetterGenshinImpact.GameTask.AutoPathing.Handler;
 using BetterGenshinImpact.GameTask.AutoPick.Assets;
 using BetterGenshinImpact.Core.Recognition;
+using BetterGenshinImpact.Core.Recognition.OCR;
+using BetterGenshinImpact.Core.Recognition.OpenCv;
+using BetterGenshinImpact.GameTask.AutoFight.Assets;
 using BetterGenshinImpact.GameTask.Common.Element.Assets;
 using BetterGenshinImpact.GameTask.Common;
 
@@ -35,6 +39,7 @@ public class AutoFightTask : ISoloTask
     private readonly AutoFightParam _taskParam;
 
     private readonly CombatScriptBag _combatScriptBag;
+    private readonly string _firstLine ;
 
     private CancellationToken _ct;
 
@@ -199,6 +204,7 @@ public class AutoFightTask : ISoloTask
     {
         _taskParam = taskParam;
         _combatScriptBag = CombatScriptParser.ReadAndParse(_taskParam.CombatStrategyPath);
+        _firstLine = File.ReadLines(_taskParam.CombatStrategyPath).FirstOrDefault() ?? "";
 
         if (_taskParam.FightFinishDetectEnabled)
         {
@@ -298,6 +304,104 @@ public class AutoFightTask : ISoloTask
         var guardianAvatar = string.IsNullOrWhiteSpace(_taskParam.GuardianAvatar) ? null : combatScenes.SelectAvatar(int.Parse(_taskParam.GuardianAvatar));
         
         AutoFightSeek.RotationCount= 0; // 重置旋转次数
+
+        var times = 0;
+        var containElite = false;
+        var lastTime = DateTime.UtcNow;
+        var threshold = TaskContext.Instance().Config.OtherConfig.OcrConfig.OcrMatchDefaultThreshold;
+        
+        
+        bool ocrEliteFull()
+        {
+            var imageRegion = CaptureToRectArea();
+            var textRect = new Rect((int)(368*3/4 * _assetScale), (int)(738*3/4 * _assetScale),
+                (int)((425-368)*3/4 * _assetScale), (int)((1100-738)*3/4 * _assetScale));
+            var textMat = new Mat(imageRegion.SrcMat, textRect);
+            string text = OcrFactory.Paddle.Ocr(textMat);
+
+
+            //var cd = StringUtils.TryParseDouble(text);
+            var result = text != null && (text.Contains("56") || text.Contains("57") || text.Contains("58") ||
+                                          text.Contains("59") || text.Contains("60") || text.Contains("200") ||
+                                          text.Contains("400") || text.Contains("600"));
+            if (result)
+                Logger.LogInformation("识别到精英，{result}, text = {text}", result, text.ReplaceLineEndings(" "));
+            containElite = containElite || result;
+            return result;
+        }
+        
+        bool ocrEliteMatch()
+        {
+            //80 260 260 80
+            //160 550 320 480
+            var ra = CaptureToRectArea();
+            var roi = new Rect((int)(150 * _assetScale), (int)(400 * _assetScale),
+                (int)(320 * _assetScale), (int)(500 * _assetScale));
+
+            // var roi2 = new Rect((int)(80 * _assetScale), (int)(160 * _assetScale),
+            //     (int)(160 * _assetScale), (int)(80 * _assetScale));
+            var matchService = OcrFactory.PaddleMatch;
+            using var region = ra.DeriveCrop(roi);
+            // using var region2 = ra.DeriveCrop(roi2);
+            var score = matchService.OcrMatch(region.SrcMat, "60");
+            var current = DateTime.UtcNow;
+            Logger.LogDebug("识别精英结果 = {result} ,score = {score}，间隔 {delta} s", (score > threshold), score,
+                Math.Round((current - lastTime).TotalMilliseconds / 1000, 2));
+            if (score > threshold)
+                Logger.LogInformation("识别到精英，间隔 {delta} s", Math.Round((current - lastTime).TotalMilliseconds / 1000, 2));
+            // Logger.LogInformation("识别“经验”：{res}",matchService.OcrMatch(region.SrcMat, "经验"));
+            // Logger.LogInformation("识别“摩拉”：{res}",matchService.OcrMatch(region.SrcMat, "摩拉"));
+            lastTime = current;
+            containElite = containElite || (score > threshold);
+            return score > threshold;
+        }
+        
+        async Task<bool> recall()
+        {
+            times+=1;
+            if (times <= 2) return false;
+            var result = await CheckFightFinish(0, detectDelayTime);
+            if(true) 
+                fightEndFlag = result;
+            return result;
+        }
+        
+        var ocrTask = Task.Run(async () =>         
+        {
+            try
+            {
+                if (!_taskParam.KazuhaPickupEnabled || combatScenes.SelectAvatar("枫原万叶") == null)
+                {
+                    return;
+                }
+                while (!cts2.Token.IsCancellationRequested)
+                {
+                    ocrEliteFull();
+                    await Delay(500, ct);
+                    if (containElite)
+                    {
+                        Logger.LogInformation("识别到有精英怪，正在退出");
+                        return;
+                    }
+
+                    if (fightEndFlag)
+                    {
+                        ocrEliteFull();
+                        return;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                Debug.WriteLine(e.StackTrace);
+                throw;
+            }
+            finally
+            {
+            }
+        },cts2.Token);
+
         
         // 战斗操作
         var fightTask = Task.Run(async () =>
@@ -335,6 +439,72 @@ public class AutoFightTask : ISoloTask
                         var command = combatCommands[i];
                         var lastCommand = i == 0 ? command : combatCommands[i - 1];
                         
+                        
+                        #region 自定义EQ功能
+                        foreach (var item in _firstLine.ToCharArray())
+                        {
+                            bool? result = false;
+                            bool skip = false;
+                            Avatar? avatarItem = null;
+                            if (item >= 'a' && item <= 'd')
+                            {
+                                
+                                avatarItem = combatScenes.GetAvatars()[item - 'a'];
+                                skip =  ((i == 0) || lastFightName != command.Name);
+                                if (skip)
+                                {
+                                    result = await AutoFightSkill.EnsureGuardianSkill(avatarItem, lastCommand,
+                                        lastFightName,
+                                        _taskParam.GuardianAvatar, _taskParam.GuardianAvatarHold,
+                                        avatarItem.Name == "枫原万叶" ? 1 : 5,
+                                        ct,
+                                        _taskParam.GuardianCombatSkip,
+                                        _taskParam.BurstEnabled, recall);
+                                }
+                            }
+
+                            if (item >= 'A' && item <= 'D')
+                            {
+                                
+                                avatarItem = combatScenes.GetAvatars()[item - 'A'];
+                                skip = ((i == 0) || lastFightName != command.Name);
+                                if (skip)
+                                {
+                                    
+                                    if (avatarItem.Name == combatScenes.CurrentAvatar(true, CaptureToRectArea(), ct))
+                                    {
+                                        result = await recall();
+                                        if (result != true)
+                                        {
+                                            Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
+                                            avatarItem.Ready();
+                                            if (avatarItem.Name == "枫原万叶")
+                                            {
+                                                Logger.LogInformation($"万叶一命检查: {avatarItem.RefreshSkillCd()}");
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        result = await AutoFightSkill.EnsureGuardianBurst(avatarItem, lastCommand,
+                                            lastFightName,
+                                            _taskParam.GuardianAvatar, _taskParam.GuardianAvatarHold,
+                                            avatarItem.Name == "枫原万叶" ? 1 : 5,
+                                            ct,
+                                            _taskParam.GuardianCombatSkip,
+                                            _taskParam.BurstEnabled, recall);
+                                    }
+                                    
+                                }
+                            }
+                            if (result == true)
+                            {
+                                goto EndOfLoop;
+                            }
+                        }
+                        #endregion
+                                                
+                                                
                         #region 盾奶位技能优先功能
                         
                         var skipModel = guardianAvatar != null && lastFightName != command.Name;
@@ -359,6 +529,44 @@ public class AutoFightTask : ISoloTask
                         }
 
                         #region 每个命令的跳过战斗判定
+                        
+                        
+                        // bearingsteel 盾奶位连招不含战技时候不会自动跳过执行
+                        #region 技能组合是否含元素战技
+                        bool commandWithSkill = false;
+                        for (int j = 0; i+j < combatCommands.Count; j++)
+                        {
+                            var commandCompare =  combatCommands[i+j];
+                            if (command.Name != commandCompare.Name)
+                                break;
+                            if (
+                                commandCompare.Method == Method.Skill ||
+                                ((commandCompare.Method == Method.KeyDown ||
+                                  commandCompare.Method == Method.KeyUp ||
+                                  commandCompare.Method == Method.KeyPress ) &&
+                                 string.Equals(commandCompare.Args![0].ToLower() , "e")))
+                            {
+                                commandWithSkill = true;
+                                break;
+                            }
+                        }
+                        for (int j = 0; i-j >=0; j++)
+                        {
+                            var commandCompare =  combatCommands[i-j];
+                            if (command.Name != commandCompare.Name)
+                                break;
+                            if (
+                                commandCompare.Method == Method.Skill ||
+                                ((commandCompare.Method == Method.KeyDown ||
+                                  commandCompare.Method == Method.KeyUp ||
+                                  commandCompare.Method == Method.KeyPress ) &&
+                                 string.Equals(commandCompare.Args![0].ToLower() , "e")))
+                            {
+                                commandWithSkill = true;
+                                break;
+                            }
+                        }
+                        #endregion
 
                         // 判断是否满足跳过条件:
                         // 1.上一次成功执行命令的最后执行角色不是这次的执行角色
@@ -368,7 +576,7 @@ public class AutoFightTask : ISoloTask
                                 (lastFightName == command.Name &&
                                  // 且未跳过(成功执行)了,则不进行跳过判定
                                  skipFightName == "")
-                            &&
+                            && commandWithSkill &&
                             // 且这次执行的角色包含在可跳过的角色列表中
                             (allCanBeSkipped || canBeSkippedAvatarNames.Contains(command.Name))
                            )
@@ -418,8 +626,8 @@ public class AutoFightTask : ISoloTask
                             fightEndFlag = await CheckFightFinish(delayTime, detectDelayTime);
                         }
                         #endregion
-                        
-                        command.Execute(combatScenes, lastCommand);
+
+                        command.Execute(combatScenes, lastCommand,recall);
                         //统计战斗人次
                         if (i == combatCommands.Count - 1 || command.Name != combatCommands[i + 1].Name)
                         {
@@ -467,6 +675,7 @@ public class AutoFightTask : ISoloTask
                         break;
                     }
                 }
+                EndOfLoop: {}
             }
             catch (Exception e)
             {
@@ -488,6 +697,7 @@ public class AutoFightTask : ISoloTask
             return;
         }
         
+        await ocrTask;
         if (_taskParam.KazuhaPickupEnabled)
         {
             // 队伍中存在万叶的时候使用一次长E
@@ -601,28 +811,35 @@ public class AutoFightTask : ISoloTask
                 }
 
             }
-            
+
             if (picker != null)
             {
-                if (picker.Name == "枫原万叶")
+                if (!containElite)
                 {
-                    var time = TimeSpan.FromSeconds(picker.GetSkillCdSeconds());
+                    Logger.LogInformation("不含精英containElite = {containElite},", containElite);
+                }
+                else if (picker.Name == "枫原万叶")
+                {
 
-                    // 如果配置了二次拾取，或者不满足跳过条件（上次是万叶且冷却时间>3秒），则执行拾取
-                    bool shouldSkip = lastFightName == picker.Name && time.TotalSeconds > 3;
-                    bool forcePickup = _taskParam.QinDoublePickUp;
-                    
-                    if (forcePickup || !shouldSkip)
+                    Logger.LogInformation("使用 枫原万叶-长E 拾取掉落物");
+                    await Delay(200, ct);
+                    if (picker.TrySwitch(10))
                     {
-                        Logger.LogInformation("使用 枫原万叶-长E 拾取掉落物");
-                        await Delay(200, ct);
-                        if (picker.TrySwitch(10))
+                        picker.RefreshSkillCd();
+
+                        var time = TimeSpan.FromSeconds(picker.GetSkillCdSeconds());
+                        
+                        // 如果配置了二次拾取，或者不满足跳过条件（上次是万叶且冷却时间>3秒），则执行拾取
+                        bool shouldSkip = time.TotalSeconds > 3;
+                        bool forcePickup = _taskParam.QinDoublePickUp;
+
+                        if (forcePickup || !shouldSkip)
                         {
                             await picker.WaitSkillCd(ct);
                             picker.UseSkill(true);
                             await Delay(50, ct);
                             Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
-                            await Delay(1500, ct);
+                            await Delay(2000, ct);
                         }
                     }
                     else
