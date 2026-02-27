@@ -315,7 +315,7 @@ public class AutoFightTask : ISoloTask
             var textMat = new Mat(imageRegion.SrcMat, textRect);
             var text = OcrFactory.Paddle.Ocr(textMat).ReplaceLineEndings(" ");
             containElite = containElite || text.Split(" ")
-                .Any(code => String.CompareOrdinal(code, "30") != String.CompareOrdinal(code, "60"));
+                .Any(code => int.TryParse(code, out var y) && y > 30);
             if (containElite)
                 Logger.LogInformation("识别到精英 text = {text}", text);
         }
