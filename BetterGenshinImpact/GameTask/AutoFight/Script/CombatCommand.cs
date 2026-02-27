@@ -2,6 +2,7 @@
 using BetterGenshinImpact.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TimeSpan = System.TimeSpan;
 
 namespace BetterGenshinImpact.GameTask.AutoFight.Script;
@@ -76,7 +77,7 @@ public class CombatCommand
         return $"<CombatCommand {Name}, {Method}({Args}) (rounds {ActivatingRound})>";
     }
 
-    public void Execute(CombatScenes combatScenes, CombatCommand? lastCommand = null)
+    public void Execute(CombatScenes combatScenes, CombatCommand? lastCommand = null, Func<Task<bool>>? methodToRun = null)
     {
         Avatar? avatar;
         if (Name == CombatScriptParser.CurrentAvatarName)
@@ -112,6 +113,10 @@ public class CombatCommand
                 {
                     avatar.Switch();
                 }
+            }
+            if (methodToRun?.Invoke().Result == true)
+            {
+                return;
             }
         }
         Execute(avatar);

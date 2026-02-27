@@ -24,6 +24,7 @@ using BetterGenshinImpact.GameTask.AutoGeniusInvokation.Model;
 using BetterGenshinImpact.GameTask.AutoPathing;
 using BetterGenshinImpact.GameTask.AutoPathing.Model;
 using BetterGenshinImpact.GameTask.AutoPathing.Model.Enum;
+using BetterGenshinImpact.GameTask.Common.Element.Assets;
 
 namespace BetterGenshinImpact.GameTask.AutoFight.Model;
 
@@ -111,6 +112,16 @@ public class Avatar
     {
         if (Bv.IsInRevivePrompt(region))
         {
+            // bearingsteel 切人检测到复活自动吃复活药
+            Logger.LogWarning("检测到复苏界面，存在角色被击败，尝试吃煎蛋");
+            var ra = region.Find(ElementAssets.Instance.BtnWhiteConfirm);
+            if (ra.IsExist())
+            {
+                ra.Click();
+                Sleep(300, ct);
+                if(!CaptureToRectArea().Find(ElementAssets.Instance.BtnWhiteConfirm).IsExist()) 
+                    return;
+            }
             Logger.LogWarning("检测到复苏界面，存在角色被击败，前往七天神像复活");
             // 先打开地图
             Simulation.SendInput.Keyboard.KeyPress(User32.VK.VK_ESCAPE); // NOTE: 此处按下Esc是为了关闭复苏界面，无需改键
@@ -218,6 +229,13 @@ public class Avatar
 
             using var region = CaptureToRectArea();
             ThrowWhenDefeated(region, Ct);
+            
+            // bearingsteel 切人出来残血自动吃药
+            if (Bv.CurrentAvatarIsLowHp(region))
+            {
+                Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                Logger.LogInformation("按Z吃药");
+            }
 
             // 切换成功
             if (CombatScenes.GetActiveAvatarIndex(region, context) == Index)
@@ -695,7 +713,7 @@ public class Avatar
                 // 若未经过OCR的技能释放,上次时间加上最长的技能时间
                 var maxCd = Math.Max(CombatAvatar.SkillHoldCd, CombatAvatar.SkillCd);
                 var target =
-                    LastSkillTime >= OcrSkillCd
+                    LastSkillTime > OcrSkillCd
                         ? LastSkillTime.AddSeconds(Math.Max(CombatAvatar.SkillHoldCd, CombatAvatar.SkillCd))
                         : OcrSkillCd;
                 var result = now > target ? 0d : (target - now).TotalSeconds;
@@ -717,6 +735,19 @@ public class Avatar
         }
 
         return 0;
+    }
+    
+    
+    // bearingsteel 万叶大须要检测一命是否生效
+    public double RefreshSkillCd(bool force = false)
+    {
+        var result = force ? 0 : GetSkillCurrentCd(CaptureToRectArea());
+        if (result <= 0)
+        {
+            OcrSkillCd = DateTime.UtcNow;
+            LastSkillTime = OcrSkillCd;
+        }
+        return result;
     }
 
     /// <summary>
@@ -821,7 +852,7 @@ public class Avatar
                     rateY = 0;
                 }
 
-                Simulation.SendInput.Mouse.MoveMouseBy((int)(rateX * 50 * dpi), (int)(rateY * 50 * dpi));
+                Simulation.SendInput.Mouse.MoveMouseBy((int)(rateX * 50 * dpi), (int)(50 * 50 * dpi));
 
                 tick = (tick + 1) % 100;
                 Sleep(25);
