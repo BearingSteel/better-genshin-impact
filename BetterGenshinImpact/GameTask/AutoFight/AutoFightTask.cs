@@ -315,7 +315,7 @@ public class AutoFightTask : ISoloTask
             var textMat = new Mat(imageRegion.SrcMat, textRect);
             var text = OcrFactory.Paddle.Ocr(textMat).ReplaceLineEndings(" ");
             containElite = containElite || text.Split(" ")
-                .Any(code => String.CompareOrdinal(code, "30") != String.CompareOrdinal(code, "60"));
+                .Any(code => int.TryParse(code, out var y) && y > 30);
             if (containElite)
                 Logger.LogInformation("识别到精英 text = {text}", text);
         }
@@ -788,25 +788,26 @@ public class AutoFightTask : ISoloTask
                 {
 
                     Logger.LogInformation("使用 枫原万叶-长E 拾取掉落物");
-                    await Delay(200, ct);
-                    if (picker.TrySwitch(10))
+
+                    var time = TimeSpan.FromSeconds(picker.GetSkillCdSeconds());
+
+                    // 如果配置了二次拾取，或者不满足跳过条件（上次是万叶且冷却时间>3秒），则执行拾取
+                    bool shouldSkip = time.TotalSeconds > 3;
+                    bool forcePickup = _taskParam.QinDoublePickUp;
+
+                    if (forcePickup || !shouldSkip)
                     {
-                        picker.RefreshSkillCd();
-
-                        var time = TimeSpan.FromSeconds(picker.GetSkillCdSeconds());
-                        
-                        // 如果配置了二次拾取，或者不满足跳过条件（上次是万叶且冷却时间>3秒），则执行拾取
-                        bool shouldSkip = time.TotalSeconds > 3;
-                        bool forcePickup = _taskParam.QinDoublePickUp;
-
-                        if (forcePickup || !shouldSkip)
-                        {
+                        if (picker.TrySwitch(10))
+                        { 
+                            await Delay(200, ct);
+                            picker.RefreshSkillCd();
                             await picker.WaitSkillCd(ct);
                             picker.UseSkill(true);
                             await Delay(50, ct);
                             Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
-                            await Delay(2000, ct);
                         }
+
+                        await Delay(2000, ct);
                     }
                     else
                     {
