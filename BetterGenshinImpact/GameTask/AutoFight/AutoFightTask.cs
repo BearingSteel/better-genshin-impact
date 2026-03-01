@@ -307,53 +307,17 @@ public class AutoFightTask : ISoloTask
 
         var times = 0;
         var containElite = false;
-        var lastTime = DateTime.UtcNow;
-        var threshold = TaskContext.Instance().Config.OtherConfig.OcrConfig.OcrMatchDefaultThreshold;
-        
-        
-        bool ocrEliteFull()
+        void ocrEliteFull()
         {
             var imageRegion = CaptureToRectArea();
-            var textRect = new Rect((int)(368*3/4 * _assetScale), (int)(738*3/4 * _assetScale),
-                (int)((425-368)*3/4 * _assetScale), (int)((1100-738)*3/4 * _assetScale));
+            var textRect = new Rect((int)(276 * _assetScale), (int)(553 * _assetScale),
+                (int)(43 * _assetScale), (int)(272 * _assetScale));
             var textMat = new Mat(imageRegion.SrcMat, textRect);
-            string text = OcrFactory.Paddle.Ocr(textMat);
-
-
-            //var cd = StringUtils.TryParseDouble(text);
-            var result = text != null && (text.Contains("56") || text.Contains("57") || text.Contains("58") ||
-                                          text.Contains("59") || text.Contains("60") || text.Contains("200") ||
-                                          text.Contains("400") || text.Contains("600"));
-            if (result)
-                Logger.LogInformation("识别到精英，{result}, text = {text}", result, text.ReplaceLineEndings(" "));
-            containElite = containElite || result;
-            return result;
-        }
-        
-        bool ocrEliteMatch()
-        {
-            //80 260 260 80
-            //160 550 320 480
-            var ra = CaptureToRectArea();
-            var roi = new Rect((int)(150 * _assetScale), (int)(400 * _assetScale),
-                (int)(320 * _assetScale), (int)(500 * _assetScale));
-
-            // var roi2 = new Rect((int)(80 * _assetScale), (int)(160 * _assetScale),
-            //     (int)(160 * _assetScale), (int)(80 * _assetScale));
-            var matchService = OcrFactory.PaddleMatch;
-            using var region = ra.DeriveCrop(roi);
-            // using var region2 = ra.DeriveCrop(roi2);
-            var score = matchService.OcrMatch(region.SrcMat, "60");
-            var current = DateTime.UtcNow;
-            Logger.LogDebug("识别精英结果 = {result} ,score = {score}，间隔 {delta} s", (score > threshold), score,
-                Math.Round((current - lastTime).TotalMilliseconds / 1000, 2));
-            if (score > threshold)
-                Logger.LogInformation("识别到精英，间隔 {delta} s", Math.Round((current - lastTime).TotalMilliseconds / 1000, 2));
-            // Logger.LogInformation("识别“经验”：{res}",matchService.OcrMatch(region.SrcMat, "经验"));
-            // Logger.LogInformation("识别“摩拉”：{res}",matchService.OcrMatch(region.SrcMat, "摩拉"));
-            lastTime = current;
-            containElite = containElite || (score > threshold);
-            return score > threshold;
+            var text = OcrFactory.Paddle.Ocr(textMat).ReplaceLineEndings(" ");
+            containElite = containElite || text.Split(" ")
+                .Any(code => String.CompareOrdinal(code, "30") != String.CompareOrdinal(code, "60"));
+            if (containElite)
+                Logger.LogInformation("识别到精英 text = {text}", text);
         }
         
         async Task<bool> recall()
@@ -370,7 +334,9 @@ public class AutoFightTask : ISoloTask
         {
             try
             {
-                if (!_taskParam.KazuhaPickupEnabled || combatScenes.SelectAvatar("枫原万叶") == null)
+                if ((!_taskParam.KazuhaPickupEnabled || combatScenes.SelectAvatar("枫原万叶") == null)
+                    &&
+                    (!_taskParam.QinDoublePickUp || combatScenes.SelectAvatar("琴") == null))
                 {
                     return;
                 }
