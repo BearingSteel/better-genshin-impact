@@ -410,14 +410,12 @@ public class AutoFightTask : ISoloTask
                         foreach (var item in _firstLine.ToCharArray())
                         {
                             bool? result = false;
-                            bool skip = false;
                             Avatar? avatarItem = null;
                             if (item >= 'a' && item <= 'd')
                             {
                                 
                                 avatarItem = combatScenes.GetAvatars()[item - 'a'];
-                                skip =  ((i == 0) || lastFightName != command.Name);
-                                if (skip)
+                                if (i == 0)
                                 {
                                     result = await AutoFightSkill.EnsureGuardianSkill(avatarItem, lastCommand,
                                         lastFightName,
@@ -433,22 +431,22 @@ public class AutoFightTask : ISoloTask
                             {
                                 
                                 avatarItem = combatScenes.GetAvatars()[item - 'A'];
-                                skip = ((i == 0) || lastFightName != command.Name);
-                                if (skip)
+                                if (i == 0)
                                 {
-                                    
-                                    if (avatarItem.Name == combatScenes.CurrentAvatar(true, CaptureToRectArea(), ct))
+                                    var image = CaptureToRectArea();
+                                    var currentAvatar = combatScenes.CurrentAvatar(true, image, ct);
+                                    if (avatarItem.Name == currentAvatar)
                                     {
-                                        result = await recall();
-                                        if (result != true)
-                                        {
-                                            Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
-                                            avatarItem.Ready();
-                                            if (avatarItem.Name == "枫原万叶")
-                                            {
-                                                Logger.LogInformation($"万叶一命检查: {avatarItem.RefreshSkillCd()}");
-                                            }
-                                        }
+                                        // result = await recall();
+                                        // if (result != true)
+                                        // {
+                                        //     Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
+                                        //     avatarItem.Ready();
+                                        //     if (avatarItem.Name == "枫原万叶")
+                                        //     {
+                                        //         Logger.LogInformation($"万叶一命检查: {avatarItem.RefreshSkillCd()}");
+                                        //     }
+                                        // }
                                     }
                                     else
                                     {
@@ -459,6 +457,14 @@ public class AutoFightTask : ISoloTask
                                             ct,
                                             _taskParam.GuardianCombatSkip,
                                             _taskParam.BurstEnabled, recall);
+
+                                        if (true == result)
+                                        {
+                                            if (avatarItem.Name == "枫原万叶")
+                                            {
+                                                Logger.LogInformation($"万叶一命检查: {avatarItem.RefreshSkillCd()}");
+                                            }
+                                        }
                                     }
                                     
                                 }
