@@ -522,6 +522,11 @@ public class CombatScenes : IDisposable
         return -1;
     }
 
+    public int GetIndexByName(string name)
+    {
+        return Array.FindIndex(Avatars, a => a.Name == name) + 1;
+    }
+
 
     #region OCR识别队伍（已弃用）
 

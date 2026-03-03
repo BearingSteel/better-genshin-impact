@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using static BetterGenshinImpact.GameTask.Common.TaskControl;
@@ -318,13 +319,14 @@ public class AutoFightTask : ISoloTask
                 .Any(code => int.TryParse(code, out var y) && y > 30);
             if (containElite)
                 Logger.LogInformation("识别到精英 text = {text}", text);
+            imageRegion.Dispose();
         }
         
-        async Task<bool> recall()
+        async Task<bool> CheckFightFinishRecall()
         {
             times+=1;
             if (times <= 2) return false;
-            var result = await CheckFightFinish(0, detectDelayTime);
+            var result = _finishDetectConfig.FastCheckEnabled && await CheckFightFinish(0, detectDelayTime);
             if(true) 
                 fightEndFlag = result;
             return result;
@@ -368,7 +370,105 @@ public class AutoFightTask : ISoloTask
             }
         },cts2.Token);
 
-        
+
+        async Task<bool> CharDeal(char item)
+        {
+            bool result = false;
+            Avatar? avatarItem = null;
+            if (item >= 'a' && item <= 'd')
+            {
+                avatarItem = combatScenes.GetAvatars()[item - 'a'];
+                switch (await AutoFightSkill.EnsureGuardianSkill(avatarItem,
+                            lastFightName,
+                            _taskParam.GuardianAvatar,
+                            new[] { "枫原万叶", "钟离", "夏沃蕾" }.Contains(avatarItem.Name)
+                            , avatarItem.Name == "枫原万叶" ? 1 : 5,
+                            ct,
+                            _taskParam.GuardianCombatSkip,
+                            _taskParam.BurstEnabled, CheckFightFinishRecall))
+                {
+                    case 1:
+                        //战斗结束
+                        result = true;
+                        break;
+                    case 0:
+                        //技能释放成功
+                        break;
+                    case -1:
+                        //技能释放失败
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else if (item >= 'A' && item <= 'D')
+            {
+                avatarItem = combatScenes.GetAvatars()[item - 'A'];
+                var image = CaptureToRectArea();
+                var currentAvatar = combatScenes.CurrentAvatar(true, image, ct);
+                Logger.LogInformation("currentAvatar = {currentAvatar}", currentAvatar);
+                if (avatarItem.Name == currentAvatar)
+                {
+                    result = await CheckFightFinishRecall();
+                    if (result != true)
+                    {
+                        combatScenes.GetIndexByName(currentAvatar);
+                        if (await AutoFightSkill.IsAvatarQSkillAsync(image, 0, true))
+                        {
+                            Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
+                            await Delay(200, ct);
+                            Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
+                            await Delay(200, ct);
+                            Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
+                            await Delay(200, ct);
+                            Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
+                            Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
+                            Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
+                            avatarItem.Ready();
+                        }
+                    }
+                }
+                else
+                {
+                    switch (await AutoFightSkill.EnsureGuardianBurst(avatarItem,
+                                _taskParam.GuardianAvatar, _taskParam.GuardianAvatarHold,
+                                avatarItem.Name == "枫原万叶" ? 1 : 5,
+                                ct,
+                                _taskParam.GuardianCombatSkip,
+                                _taskParam.BurstEnabled, CheckFightFinishRecall))
+                    {
+                        case 1:
+                            //战斗结束
+                            result = true;
+                            break;
+                        case 0:
+                            //技能释放成功
+                            break;
+                        case -1:
+                            //技能释放失败
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                if (avatarItem.Name == "枫原万叶")
+                {
+                    Logger.LogInformation($"万叶一命检查: {avatarItem.RefreshSkillCd()}");
+                }
+            }
+            else if (item == 'M')
+            {
+                Simulation.SendInput.Mouse.MiddleButtonClick();
+            }
+            else if (item >= '1' && item <= '4')
+            {
+            }
+
+            return result;
+        }
+
+                                
         // 战斗操作
         var fightTask = Task.Run(async () =>
         {
@@ -407,80 +507,49 @@ public class AutoFightTask : ISoloTask
                         
                         
                         #region 自定义EQ功能
+                        
                         foreach (var item in _firstLine.ToCharArray())
                         {
-                            bool? result = false;
-                            Avatar? avatarItem = null;
-                            if (item >= 'a' && item <= 'd')
-                            {
-                                
-                                avatarItem = combatScenes.GetAvatars()[item - 'a'];
-                                if (i == 0)
-                                {
-                                    result = await AutoFightSkill.EnsureGuardianSkill(avatarItem, lastCommand,
-                                        lastFightName,
-                                        _taskParam.GuardianAvatar, _taskParam.GuardianAvatarHold,
-                                        avatarItem.Name == "枫原万叶" ? 1 : 5,
-                                        ct,
-                                        _taskParam.GuardianCombatSkip,
-                                        _taskParam.BurstEnabled, recall);
-                                }
-                            }
-
-                            if (item >= 'A' && item <= 'D')
-                            {
-                                
-                                avatarItem = combatScenes.GetAvatars()[item - 'A'];
-                                if (i == 0)
-                                {
-                                    var image = CaptureToRectArea();
-                                    var currentAvatar = combatScenes.CurrentAvatar(true, image, ct);
-                                    if (avatarItem.Name == currentAvatar)
-                                    {
-                                        // result = await recall();
-                                        // if (result != true)
-                                        // {
-                                        //     Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
-                                        //     avatarItem.Ready();
-                                        //     if (avatarItem.Name == "枫原万叶")
-                                        //     {
-                                        //         Logger.LogInformation($"万叶一命检查: {avatarItem.RefreshSkillCd()}");
-                                        //     }
-                                        // }
-                                    }
-                                    else
-                                    {
-                                        result = await AutoFightSkill.EnsureGuardianBurst(avatarItem, lastCommand,
-                                            lastFightName,
-                                            _taskParam.GuardianAvatar, _taskParam.GuardianAvatarHold,
-                                            avatarItem.Name == "枫原万叶" ? 1 : 5,
-                                            ct,
-                                            _taskParam.GuardianCombatSkip,
-                                            _taskParam.BurstEnabled, recall);
-
-                                        if (true == result)
-                                        {
-                                            if (avatarItem.Name == "枫原万叶")
-                                            {
-                                                Logger.LogInformation($"万叶一命检查: {avatarItem.RefreshSkillCd()}");
-                                            }
-                                        }
-                                    }
-                                    
-                                }
-                            }
-                            if (result == true)
+                            if (await CharDeal(item))
                             {
                                 goto EndOfLoop;
                             }
                         }
+
+                        await Delay(200, ct);
+                        
+                        // var imageRegion = CaptureToRectArea();
+                        // var ca = combatScenes.CurrentAvatar(true, imageRegion, ct);
+                        // Logger.LogInformation("{c} ,{cd1} / {cd2} / {cd3} / {cd4} / {q1} / {q2} / {q3} / {q4}",
+                        //     ca,
+                        //     1 <= combatScenes.AvatarCount
+                        //         ? Math.Round(combatScenes.SelectAvatar(1).GetSkillCdSeconds(), 2)
+                        //         : "",
+                        //     2 <= combatScenes.AvatarCount
+                        //         ? Math.Round(combatScenes.SelectAvatar(2).GetSkillCdSeconds(), 2)
+                        //         : "",
+                        //     3 <= combatScenes.AvatarCount
+                        //         ? Math.Round(combatScenes.SelectAvatar(3).GetSkillCdSeconds(), 2)
+                        //         : "",
+                        //     4 <= combatScenes.AvatarCount
+                        //         ? Math.Round(combatScenes.SelectAvatar(4).GetSkillCdSeconds(), 2)
+                        //         : "",
+                        //     1 <= combatScenes.AvatarCount && await AutoFightSkill.IsAvatarQSkillAsync(imageRegion, 1,
+                        //         combatScenes.SelectAvatar(1).Name == ca),
+                        //     2 <= combatScenes.AvatarCount && await AutoFightSkill.IsAvatarQSkillAsync(imageRegion, 2,
+                        //         combatScenes.SelectAvatar(2).Name == ca),
+                        //     3 <= combatScenes.AvatarCount && await AutoFightSkill.IsAvatarQSkillAsync(imageRegion, 3,
+                        //         combatScenes.SelectAvatar(3).Name == ca),
+                        //     4 <= combatScenes.AvatarCount && await AutoFightSkill.IsAvatarQSkillAsync(imageRegion, 4,
+                        //         combatScenes.SelectAvatar(4).Name == ca)
+                        // );
                         #endregion
                                                 
                                                 
                         #region 盾奶位技能优先功能
                         
                         var skipModel = guardianAvatar != null && lastFightName != command.Name;
-                        if (skipModel) await AutoFightSkill.EnsureGuardianSkill(guardianAvatar,lastCommand,lastFightName,
+                        if (skipModel) await AutoFightSkill.EnsureGuardianSkill(guardianAvatar,lastFightName,
                             _taskParam.GuardianAvatar,_taskParam.GuardianAvatarHold,5,ct,_taskParam.GuardianCombatSkip,_taskParam.BurstEnabled);
                         var avatar = combatScenes.SelectAvatar(command.Name);
                         
@@ -599,7 +668,7 @@ public class AutoFightTask : ISoloTask
                         }
                         #endregion
 
-                        command.Execute(combatScenes, lastCommand,recall);
+                        command.Execute(combatScenes, lastCommand, CheckFightFinishRecall);
                         //统计战斗人次
                         if (i == combatCommands.Count - 1 || command.Name != combatCommands[i + 1].Name)
                         {

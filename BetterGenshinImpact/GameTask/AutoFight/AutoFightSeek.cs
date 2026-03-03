@@ -451,7 +451,7 @@ namespace BetterGenshinImpact.GameTask.AutoFight
 
     public class AutoFightSkill
     {
-        public static async Task<bool?> EnsureGuardianSkill(Avatar guardianAvatar, CombatCommand command, string lastFightName,
+        public static async Task<int> EnsureGuardianSkill(Avatar guardianAvatar, string lastFightName,
             string guardianAvatarName, bool guardianAvatarHold, int retryCount, CancellationToken ct,bool guardianCombatSkip = false,
             bool burstEnabled = false, Func<Task<bool>>? methodToRun = null)
         {
@@ -461,10 +461,10 @@ namespace BetterGenshinImpact.GameTask.AutoFight
             {
                 while (attempt < retryCount)
                 {
-                    if (guardianAvatar.TrySwitch(10, false))
+                    if (guardianAvatar.TrySwitch(20, false))
                     {
                         if (methodToRun?.Invoke().Result == true)
-                            return true;
+                            return 1;
                         guardianAvatar.ManualSkillCd = -1;
                         if (await AvatarSkillAsync(Logger, guardianAvatar, false, 1, ct))
                         {
@@ -474,7 +474,7 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                                 Logger.LogInformation("优先第 {text} 盾奶位 {GuardianAvatar} 战技Cd检测：{cd} 秒", guardianAvatarName,
                                     guardianAvatar.Name, cd1);
                                 guardianAvatar.ManualSkillCd = -1;
-                                return null;
+                                return -1;
                             }
                         }
             
@@ -491,7 +491,17 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                         {
                             guardianAvatar.RefreshSkillCd();
                             Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
-                            await Delay(500, ct);
+                            await Delay(700, ct);
+                        }
+                        // bearingsteel 希诺宁
+                        if (guardianAvatar.Name == "希诺宁")
+                        {
+                            Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
+                            await Delay(200, ct);
+                            Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
+                            await Delay(200, ct);
+                            Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
+                            await Delay(200, ct);
                         }
 
                         var retry = 50;
@@ -518,7 +528,7 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                                 guardianAvatarName, guardianAvatar.Name,"成功");
                             guardianAvatar.LastSkillTime = DateTime.UtcNow;
                             guardianAvatar.ManualSkillCd = -1;
-                            return null;
+                            return 0;
                         }
                         
                         Logger.LogInformation("优先第 {text} 盾奶位 {GuardianAvatar} 释放战技：失败重试 {attempt} 次",
@@ -532,10 +542,10 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                     attempt++;
                 }
             }
-            return null;
+            return -1;
         }
         
-        public static async Task<bool?> EnsureGuardianBurst(Avatar guardianAvatar, CombatCommand command, string lastFightName,
+        public static async Task<int> EnsureGuardianBurst(Avatar guardianAvatar,
                 string guardianAvatarName, bool guardianAvatarHold, int retryCount, CancellationToken ct,bool guardianCombatSkip = false,
                 bool burstEnabled = false, Func<Task<bool>>? methodToRun = null){
           if (burstEnabled) {
@@ -570,10 +580,10 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                         Logger.LogInformation("优先第 {text} 盾奶位 {GuardianAvatar} 元素爆发状态：{attempt}，尝试释放",
                             guardianAvatarName, guardianAvatar.Name, "就绪");
                         
-                        if (guardianAvatar.TrySwitch(8, false))
+                        if (guardianAvatar.TrySwitch(20, false))
                         {
                             if (methodToRun?.Invoke().Result == true)
-                                return true;
+                                return 1;
                             Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
                             Sleep(500, ct);
                             Simulation.ReleaseAllKey();
@@ -596,13 +606,14 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                                 }
                                 Logger.LogInformation("优先第 {guardianAvatarName} 盾奶位 {GuardianAvatar} 释放元素爆发：{text}",
                                     guardianAvatarName, guardianAvatar.Name, !guardianAvatar.IsBurstReady ? "成功" : "失败");
+                                return 0;
                             }
                         }
                     }
                 }
             }
 
-            return null;
+            return -1;
         }
         
         //新方法，备用，非OCR识别，判断色块进行，速度更快
@@ -741,6 +752,32 @@ namespace BetterGenshinImpact.GameTask.AutoFight
         
             return Task.FromResult(new List<int>());
         }
+        
+            
+        public static async Task<bool> IsAvatarQSkillAsync(ImageRegion  image , int index,bool isAvatarCurrent)
+        {
+            var result = false;
+            image.SrcMat.ConvertTo(image.SrcMat, MatType.CV_8UC3, alpha: 2, beta: -200); // 增加亮度和对比度
+            {
+                var skillArea = !isAvatarCurrent ? AutoFightAssets.Instance.AvatarQRectListMap[index - 1]: new Rect(1762, 915, 114, 111);
+                using var grayImage = image.DeriveCrop(skillArea).SrcMat.CvtColor(ColorConversionCodes.BGR2GRAY);
+                var meanBrightness = Cv2.Mean(grayImage);
+                var avgBrightness = meanBrightness.Val0;
+                var threshold1 = avgBrightness * 0.9;
+                var threshold2 = avgBrightness * 2;
+                Cv2.Canny(grayImage, grayImage, threshold1: (float)threshold1, threshold2: (float)threshold2);
+                var circles = Cv2.HoughCircles(grayImage, HoughModes.Gradient, dp: 1.2, minDist: 20,
+                    param1: 90, param2:!isAvatarCurrent ? 25 : 35, minRadius: !isAvatarCurrent ? 25 : 50, maxRadius:!isAvatarCurrent ? 34 : 60);
+        
+                if (circles.Length > 0)
+                {
+                    result = true;
+                }
+            }
+            return result;
+        }
+        
+        
     }
 
 }
