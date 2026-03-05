@@ -449,9 +449,17 @@ namespace BetterGenshinImpact.GameTask.AutoFight
         }
     }
 
+
+    public enum EnsureGuardianEqType
+    {
+        Success,
+        Failure,
+        Finish
+    }
+
     public class AutoFightSkill
     {
-        public static async Task<int> EnsureGuardianSkill(Avatar guardianAvatar, string lastFightName,
+        public static async Task<EnsureGuardianEqType> EnsureGuardianSkill(Avatar guardianAvatar, string lastFightName,
             string guardianAvatarName, bool guardianAvatarHold, int retryCount, CancellationToken ct,bool guardianCombatSkip = false,
             bool burstEnabled = false, Func<Task<bool>>? methodToRun = null)
         {
@@ -464,7 +472,7 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                     if (guardianAvatar.TrySwitch(20, false))
                     {
                         if (methodToRun?.Invoke().Result == true)
-                            return 1;
+                            return EnsureGuardianEqType.Finish;
                         guardianAvatar.ManualSkillCd = -1;
                         if (await AvatarSkillAsync(Logger, guardianAvatar, false, 1, ct))
                         {
@@ -474,7 +482,7 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                                 Logger.LogInformation("优先第 {text} 盾奶位 {GuardianAvatar} 战技Cd检测：{cd} 秒", guardianAvatarName,
                                     guardianAvatar.Name, cd1);
                                 guardianAvatar.ManualSkillCd = -1;
-                                return -1;
+                                return EnsureGuardianEqType.Failure;
                             }
                         }
             
@@ -491,7 +499,7 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                         {
                             guardianAvatar.RefreshSkillCd();
                             Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
-                            await Delay(700, ct);
+                            await Delay(1500, ct);
                         }
                         // bearingsteel 希诺宁
                         if (guardianAvatar.Name == "希诺宁")
@@ -528,7 +536,7 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                                 guardianAvatarName, guardianAvatar.Name,"成功");
                             guardianAvatar.LastSkillTime = DateTime.UtcNow;
                             guardianAvatar.ManualSkillCd = -1;
-                            return 0;
+                            return EnsureGuardianEqType.Success;
                         }
                         
                         Logger.LogInformation("优先第 {text} 盾奶位 {GuardianAvatar} 释放战技：失败重试 {attempt} 次",
@@ -542,10 +550,10 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                     attempt++;
                 }
             }
-            return -1;
+            return EnsureGuardianEqType.Failure;
         }
         
-        public static async Task<int> EnsureGuardianBurst(Avatar guardianAvatar,
+        public static async Task<EnsureGuardianEqType> EnsureGuardianBurst(Avatar guardianAvatar,
                 string guardianAvatarName, bool guardianAvatarHold, int retryCount, CancellationToken ct,bool guardianCombatSkip = false,
                 bool burstEnabled = false, Func<Task<bool>>? methodToRun = null){
           if (burstEnabled) {
@@ -583,7 +591,7 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                         if (guardianAvatar.TrySwitch(20, false))
                         {
                             if (methodToRun?.Invoke().Result == true)
-                                return 1;
+                                return EnsureGuardianEqType.Finish;
                             Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
                             Sleep(500, ct);
                             Simulation.ReleaseAllKey();
@@ -606,14 +614,14 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                                 }
                                 Logger.LogInformation("优先第 {guardianAvatarName} 盾奶位 {GuardianAvatar} 释放元素爆发：{text}",
                                     guardianAvatarName, guardianAvatar.Name, !guardianAvatar.IsBurstReady ? "成功" : "失败");
-                                return 0;
+                                return EnsureGuardianEqType.Success;
                             }
                         }
                     }
                 }
             }
 
-            return -1;
+            return EnsureGuardianEqType.Failure;
         }
         
         //新方法，备用，非OCR识别，判断色块进行，速度更快
