@@ -14,6 +14,8 @@ namespace BetterGenshinImpact.GameTask.AutoFight;
 public partial class AutoFightConfig : ObservableObject
 {
     [ObservableProperty] private string _strategyName = "";
+    [ObservableProperty] private bool _autoSkill = true;
+    [ObservableProperty] private bool _autoEat = true;
 
     /// <summary>
     /// 英文逗号分割 强制指定队伍角色
@@ -132,6 +134,12 @@ public partial class AutoFightConfig : ObservableObject
     
     [ObservableProperty]
     private bool _qinDoublePickUp = false;
+    
+    [ObservableProperty]
+    private bool _checkElitePickUp = true;
+    
+    [ObservableProperty]
+    private bool _checkAfterSwitch = true;
     
     [ObservableProperty]
     private string _guardianAvatar = string.Empty;

@@ -31,6 +31,10 @@ public class AutoFightParam : BaseTaskParam<AutoFightTask>
         PickDropsAfterFightSeconds = autoFightConfig.PickDropsAfterFightSeconds;
         KazuhaPickupEnabled = autoFightConfig.KazuhaPickupEnabled;
         ActionSchedulerByCd = autoFightConfig.ActionSchedulerByCd;
+        AutoEat = autoFightConfig.AutoEat;
+        AutoSkill = autoFightConfig.AutoSkill;
+        CheckElitePickUp = autoFightConfig.CheckElitePickUp;
+        CheckAfterSwitch = autoFightConfig.CheckAfterSwitch;
 
         FinishDetectConfig.FastCheckEnabled = autoFightConfig.FinishDetectConfig.FastCheckEnabled;
         FinishDetectConfig.FastCheckParams = autoFightConfig.FinishDetectConfig.FastCheckParams;
@@ -68,6 +72,10 @@ public class AutoFightParam : BaseTaskParam<AutoFightTask>
     public int BattleThresholdForLoot { get; set; } = -1;
     public int Timeout { get; set; } = 120;
 
+    public bool AutoSkill = true;
+    public bool AutoEat = true;
+    public bool CheckElitePickUp = true;
+    public bool CheckAfterSwitch = true;
     public bool KazuhaPickupEnabled = true;
     public string ActionSchedulerByCd = "";
     public string KazuhaPartyName;
@@ -120,6 +128,10 @@ public class AutoFightParam : BaseTaskParam<AutoFightTask>
         PickDropsAfterFightSeconds = autoFightConfig.PickDropsAfterFightSeconds;
         KazuhaPickupEnabled = autoFightConfig.KazuhaPickupEnabled;
         ActionSchedulerByCd = autoFightConfig.ActionSchedulerByCd;
+        AutoEat = autoFightConfig.AutoEat;
+        AutoSkill = autoFightConfig.AutoSkill;
+        CheckElitePickUp = autoFightConfig.CheckElitePickUp;
+        CheckAfterSwitch = autoFightConfig.CheckAfterSwitch;
 
         FinishDetectConfig.FastCheckEnabled = autoFightConfig.FinishDetectConfig.FastCheckEnabled;
         FinishDetectConfig.FastCheckParams = autoFightConfig.FinishDetectConfig.FastCheckParams;
