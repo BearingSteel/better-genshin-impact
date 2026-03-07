@@ -24,6 +24,7 @@ using BetterGenshinImpact.GameTask.AutoGeniusInvokation.Model;
 using BetterGenshinImpact.GameTask.AutoPathing;
 using BetterGenshinImpact.GameTask.AutoPathing.Model;
 using BetterGenshinImpact.GameTask.AutoPathing.Model.Enum;
+using BetterGenshinImpact.GameTask.Common.Element.Assets;
 
 namespace BetterGenshinImpact.GameTask.AutoFight.Model;
 
@@ -111,6 +112,29 @@ public class Avatar
     {
         if (Bv.IsInRevivePrompt(region))
         {
+            // 切人检测到复活自动吃复活药
+            if (TaskContext.Instance().Config.AutoFightConfig.AutoEat)
+            {
+                Logger.LogInformation("{x}","检测到复苏界面，存在角色被击败，尝试吃煎蛋");
+                var ra = region.Find(ElementAssets.Instance.BtnWhiteConfirm);
+                if (ra.IsExist())
+                {
+                    ra.Click();
+                    Sleep(100, ct);
+                    if (!CaptureToRectArea().Find(ElementAssets.Instance.BtnWhiteConfirm).IsExist())
+                    {
+                        Sleep(200, ct);
+                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                        Logger.LogInformation("按Z吃药x5");
+                        return;
+                    }
+                }
+            }
+            
             Logger.LogWarning("检测到复苏界面，存在角色被击败，前往七天神像复活");
             // 先打开地图
             Simulation.SendInput.Keyboard.KeyPress(User32.VK.VK_ESCAPE); // NOTE: 此处按下Esc是为了关闭复苏界面，无需改键
@@ -219,7 +243,16 @@ public class Avatar
 
             using var region = CaptureToRectArea();
             ThrowWhenDefeated(region, Ct);
-
+            
+            // bearingsteel 切人出来残血自动吃药
+            if (Bv.CurrentAvatarIsLowHp(region))
+            {
+                Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                Logger.LogInformation("按Z吃药x3");
+            }
+            
             // 切换成功
             if (CombatScenes.GetActiveAvatarIndex(region, context) == Index)
             {

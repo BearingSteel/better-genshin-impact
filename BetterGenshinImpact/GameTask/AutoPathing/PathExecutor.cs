@@ -609,7 +609,16 @@ public class PathExecutor
 
         return false;
     }
-
+    
+    // bearingsteel 行走位自动吃药
+    private async Task<bool> TryEatTask()
+    {
+        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+        await Delay(200, ct);
+        Logger.LogInformation("按Z吃药x2");
+        return true;
+    }
+    
     private async Task RecoverWhenLowHp(WaypointForTrack waypoint)
     {
         if (PartyConfig.OnlyInTeleportRecover && waypoint.Type != WaypointType.Teleport.Code)
@@ -618,13 +627,19 @@ public class PathExecutor
         }
 
         using var region = CaptureToRectArea();
-        if (Bv.CurrentAvatarIsLowHp(region) && !(await TryPartyHealing() && Bv.CurrentAvatarIsLowHp(region)))
+        // bearingsteel 行走位自动吃药
+        if (Bv.CurrentAvatarIsLowHp(region)
+            && !(await TryEatTask() && await TryEatTask() && Bv.CurrentAvatarIsLowHp(region))
+            && !(await TryEatTask() && Bv.CurrentAvatarIsLowHp(region))
+            && !(await TryPartyHealing() && Bv.CurrentAvatarIsLowHp(region)))
         {
             Logger.LogInformation("当前角色血量过低，去七天神像恢复");
             await TpStatueOfTheSeven();
             throw new RetryException("回血完成后重试路线");
         }
-        else if (Bv.ClickIfInReviveModal(region))
+        else if (Bv.ClickIfInReviveModal(region)
+                 && !(await TryEatTask() && await TryEatTask() && await TryEatTask() && Bv.ClickIfInReviveModal(region))
+                )
         {
             await Bv.WaitForMainUi(ct); // 等待主界面加载完成
             Logger.LogInformation("复苏完成");
@@ -1116,7 +1131,18 @@ public class PathExecutor
             {
                 SuccessFight++;
             }
-            await Delay(1000, ct);
+
+            Logger.LogInformation("waypoint.Action{x}", waypoint.Action);
+            // bearingsteel 延迟缩减
+            if (waypoint.Action == ActionEnum.Fight.Code
+                || waypoint.Action == ActionEnum.CombatScript.Code)
+            {
+                await Delay(300, ct);
+            }
+            else
+            {
+                await Delay(1000, ct);
+            }
         }
     }
 
