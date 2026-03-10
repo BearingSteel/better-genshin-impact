@@ -563,12 +563,32 @@
                                   FontTypography="Body"
                                   Foreground="LimeGreen"
                                   FontWeight="Bold"
-                                  Text="个人向设置"
-                                  TextWrapping="Wrap" />
+                                  TextWrapping="Wrap">
+                        <Run Text="个人向设置" /> 
+                        <InlineUIContainer>
+                            <Border Width="10" />
+                        </InlineUIContainer>
+                        <Hyperlink 
+                            NavigateUri="https://github.com/BearingSteel/better-genshin-impact/releases"
+                            RequestNavigate="HyperlinkRequestNavigate"
+                            Foreground="DeepSkyBlue">
+                            <Run Text="&#128279;最新版下载页" />
+                        </Hyperlink>
+                        <InlineUIContainer>
+                            <Border Width="10" />
+                        </InlineUIContainer>
+                        <Hyperlink 
+                            NavigateUri="https://github.com/BearingSteel/better-genshin-impact"
+                            RequestNavigate="HyperlinkRequestNavigate"
+                            Foreground="DeepSkyBlue">
+                            <Run Text="&#128279;项目地址" />
+                        </Hyperlink>
+                    </ui:TextBlock>
+                    
                     <ui:TextBlock Grid.Row="1"
                                   Grid.Column="0"
                                   Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                                  Text="个人向设置说是，关闭之后四舍五入等于原版吧（或许）？？？"
+                                  Text="个人向设置，关闭之后四舍五入等于原版吧（或许）？？？"
                                   TextWrapping="Wrap" />
                     <ui:ToggleSwitch Grid.Row="0"
                                      Grid.RowSpan="2"
