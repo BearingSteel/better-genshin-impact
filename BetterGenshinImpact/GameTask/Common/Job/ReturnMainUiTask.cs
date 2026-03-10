@@ -1,9 +1,10 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using BetterGenshinImpact.Core.BgiVision;
 using BetterGenshinImpact.Core.Simulator;
+using BetterGenshinImpact.GameTask.BearingSteel;
 using BetterGenshinImpact.GameTask.Common.BgiVision;
 using BetterGenshinImpact.GameTask.Common.Element.Assets;
+using Microsoft.Extensions.Logging;
 using Vanara.PInvoke;
 using static BetterGenshinImpact.GameTask.Common.TaskControl;
 
@@ -38,6 +39,11 @@ public class ReturnMainUiTask
             if (Bv.IsInMainUi(region))
             {
                 region.Dispose();
+                if (BearingSteelConfig.GetBearingSteelReduceWait())
+                {
+                    Logger.LogInformation("BearingSteelReduceWait await Delay(200, ct)");
+                    await Delay(200, ct);
+                }
                 return;
             }
             else

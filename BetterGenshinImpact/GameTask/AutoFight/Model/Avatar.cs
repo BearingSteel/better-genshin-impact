@@ -9,6 +9,7 @@ using BetterGenshinImpact.Helpers;
 using Microsoft.Extensions.Logging;
 using OpenCvSharp;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,8 @@ using BetterGenshinImpact.GameTask.AutoGeniusInvokation.Model;
 using BetterGenshinImpact.GameTask.AutoPathing;
 using BetterGenshinImpact.GameTask.AutoPathing.Model;
 using BetterGenshinImpact.GameTask.AutoPathing.Model.Enum;
+using BetterGenshinImpact.GameTask.BearingSteel;
+using BetterGenshinImpact.GameTask.Common.Element.Assets;
 
 namespace BetterGenshinImpact.GameTask.AutoFight.Model;
 
@@ -111,6 +114,29 @@ public class Avatar
     {
         if (Bv.IsInRevivePrompt(region))
         {
+            // 切人检测到复活自动吃复活药
+            if (BearingSteelConfig.GetBearingSteelAutoEatEgg())
+            {
+                Logger.LogInformation("{x}","检测到复苏界面，存在角色被击败，尝试吃煎蛋");
+                var ra = region.Find(ElementAssets.Instance.BtnWhiteConfirm);
+                if (ra.IsExist())
+                {
+                    ra.Click();
+                    Sleep(100, ct);
+                    if (!CaptureToRectArea().Find(ElementAssets.Instance.BtnWhiteConfirm).IsExist())
+                    {
+                        Sleep(200, ct);
+                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                        Logger.LogInformation("按Z吃药x5");
+                        return;
+                    }
+                }
+            }
+            
             Logger.LogWarning("检测到复苏界面，存在角色被击败，前往七天神像复活");
             // 先打开地图
             Simulation.SendInput.Keyboard.KeyPress(User32.VK.VK_ESCAPE); // NOTE: 此处按下Esc是为了关闭复苏界面，无需改键
@@ -219,7 +245,17 @@ public class Avatar
 
             using var region = CaptureToRectArea();
             ThrowWhenDefeated(region, Ct);
-
+            
+            // bearingsteel 切人出来残血自动吃药
+            if (BearingSteelConfig.GetBearingSteelAutoEatEgg())
+                if (Bv.CurrentAvatarIsLowHp(region))
+                {
+                    Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                    Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                    Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                    Logger.LogInformation("按Z吃药x3");
+                }
+            
             // 切换成功
             if (CombatScenes.GetActiveAvatarIndex(region, context) == Index)
             {
@@ -253,6 +289,26 @@ public class Avatar
             ThrowWhenDefeated(region, Ct);
 
             // 切换成功
+            if (BearingSteelConfig.GetBearingSteelConfigEnable())
+            {
+                var assetScale = TaskContext.Instance().SystemInfo.AssetScale;
+                var pixelColor = CaptureToRectArea().SrcMat;
+                var minItem = new List<Vec3b>
+                    {
+                        pixelColor.At<Vec3b>((int)(260 * assetScale), (int)(1860 * assetScale)),
+                        pixelColor.At<Vec3b>((int)(350 * assetScale), (int)(1860 * assetScale)),
+                        pixelColor.At<Vec3b>((int)(440 * assetScale), (int)(1860 * assetScale)),
+                        pixelColor.At<Vec3b>((int)(530 * assetScale), (int)(1860 * assetScale))
+                    }
+                    .Select((item, index) => new
+                        { Sum = item.Item0 + item.Item1 + item.Item2, Index = index })
+                    .MinBy(x => x.Sum);
+                if (Index == (minItem == null ? 0 : minItem.Index + 1))
+                {
+                    return true;
+                }
+            }
+            else
             if (CombatScenes.GetActiveAvatarIndex(region, context) == Index)
             {
                 // if (needLog && i > 0)
