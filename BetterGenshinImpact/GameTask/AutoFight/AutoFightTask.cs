@@ -230,6 +230,32 @@ public class AutoFightTask : ISoloTask
         }
         throw new Exception("识别队伍角色失败（已重试 5 次）");
     }
+
+
+    bool containElite = false;
+
+    void OcrEliteFull()
+    {
+        if (!BearingSteelConfig.GetBearingSteelCheckElitePickUp())
+            return;
+        if (containElite)
+            return;
+        var imageRegion = CaptureToRectArea();
+        var textRect = new Rect((int)(280 * _assetScale), (int)(553 * _assetScale),
+            (int)(50 * _assetScale), (int)(160 * _assetScale));
+        var textMat = new Mat(imageRegion.SrcMat, textRect);
+        var timeOcrStart = DateTime.Now;
+        var text = OcrFactory.Paddle.Ocr(textMat).ReplaceLineEndings(" ");
+        containElite = containElite || text.Split(" ")
+            .Any(code => int.TryParse(code, out var y) && y >= 30);
+        if (containElite)
+            Logger.LogInformation("识别精英耗时{t}ms ,text= {text}", (DateTime.Now - timeOcrStart).Milliseconds, text);
+        imageRegion.Dispose();
+    }
+
+    
+    
+    
     // 方法1：判断是否是单个数字
 
     /*public int delayTime=1500;
@@ -302,29 +328,12 @@ public class AutoFightTask : ISoloTask
         
         AutoFightSeek.RotationCount= 0; // 重置旋转次数
         
-        var containElite = false;    
         async Task<bool> CheckFightFinishAfterSwitch()
         {
             return  fightEndFlag = fightEndFlag ||
                                   (BearingSteelConfig.GetBearingSteelCheckAfterSwitch() && _taskParam.FightFinishDetectEnabled
                                    && await CheckFightFinish(0, detectDelayTime));
         }
-        void OcrEliteFull()
-        {
-            if(!BearingSteelConfig.GetBearingSteelCheckElitePickUp())
-                return;
-            var imageRegion = CaptureToRectArea();
-            var textRect = new Rect((int)(276 * _assetScale), (int)(553 * _assetScale),
-                (int)(80 * _assetScale), (int)(272 * _assetScale));
-            var textMat = new Mat(imageRegion.SrcMat, textRect);
-            var text = OcrFactory.Paddle.Ocr(textMat).ReplaceLineEndings(" ");
-            containElite = containElite || text.Split(" ")
-                .Any(code => int.TryParse(code, out var y) && y > 30);
-            if (containElite)
-                Logger.LogInformation("识别到精英 text = {text}", text);
-            imageRegion.Dispose();
-        }
-        
         
         var ocrTask = Task.Run(async () =>         
         {
@@ -375,6 +384,9 @@ public class AutoFightTask : ISoloTask
                 {
                     // 所有战斗角色都可以被取消
 
+                    if (combatCommands.Count == 0)
+                        await AutoEQ(-1);
+                    
                     #region 本次战斗的跳过战斗判定
 
                     //如果所有角色都可以被跳过，且没有任何一个cd大于0的(技能都还没好)
@@ -571,9 +583,19 @@ public class AutoFightTask : ISoloTask
                             }
                         }
 
+                        if (fightEndFlag)
+                        {
+                            break;
+                        }
 
-                        #region 自动EQ
+                        if (BearingSteelConfig.GetBearingSteelAutoSkill() && i == combatCommands.Count - 1)
+                            await AutoEQ(i);
+                    }
 
+                    #region 自动EQ
+
+                    async Task AutoEQ(int i)
+                    {
                         async Task AddCommand(ImageRegion imageRegion, int index, Avatar avatar, bool isE)
                         {
                             if (index <= combatScenes.AvatarCount)
@@ -604,10 +626,9 @@ public class AutoFightTask : ISoloTask
                                     }
                                 }
                         }
-
-                        if (BearingSteelConfig.GetBearingSteelAutoSkill() &&
-                            i == combatCommands.Count - 1)
+                        
                         {
+                            Logger.LogInformation("AutoEQ i = {x}", i);
                             var imageRegion = CaptureToRectArea();
                             await AddCommand(imageRegion, 1, combatScenes.SelectAvatar(1), false);
                             await AddCommand(imageRegion, 2, combatScenes.SelectAvatar(2), false);
@@ -624,16 +645,9 @@ public class AutoFightTask : ISoloTask
                                 combatCommands.Add(new CombatCommand(combatCommands[i].Name, "wait(0.6)"));
                             }
                         }
-
-                        #endregion
-                        
-                        
-                        if (fightEndFlag)
-                        {
-                            break;
-                        }
                     }
 
+                    #endregion
 
                     if (fightEndFlag)
                     {
@@ -664,6 +678,14 @@ public class AutoFightTask : ISoloTask
         if (BearingSteelConfig.GetBearingSteelCheckElitePickUp())
             await ocrTask;
         
+        OcrEliteFull();
+        if (BearingSteelConfig.GetBearingSteelCheckElitePickUp() 
+            && !containElite 
+            && string.IsNullOrEmpty(_taskParam.KazuhaPartyName))
+        {
+            Logger.LogInformation("不含精英containElite = {containElite},", containElite);
+        } 
+        else
         if (_taskParam.KazuhaPickupEnabled)
         {
             // 队伍中存在万叶的时候使用一次长E
@@ -780,11 +802,7 @@ public class AutoFightTask : ISoloTask
             
             if (picker != null)
             {
-                if (BearingSteelConfig.GetBearingSteelCheckElitePickUp() && !containElite)
-                {
-                    Logger.LogInformation("不含精英containElite = {containElite},", containElite);
-                }
-                else if (picker.Name == "枫原万叶")
+                if (picker.Name == "枫原万叶")
                 {
                     var time = TimeSpan.FromSeconds(picker.GetSkillCdSeconds());
 
@@ -802,7 +820,7 @@ public class AutoFightTask : ISoloTask
                             picker.UseSkill(true);
                             await Delay(50, ct);
                             Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
-                            await Delay(2000, ct);
+                            await Delay(1500, ct);
                         }
                     }
                     else
@@ -936,6 +954,7 @@ public class AutoFightTask : ISoloTask
         {
             return false;
         }
+        OcrEliteFull();
         if (_finishDetectConfig.RotateFindEnemyEnabled)
         {
             bool? result = null;
@@ -977,10 +996,7 @@ public class AutoFightTask : ISoloTask
                 await Delay(100, _ct);
                 return true;
             }
-        } 
-            
-            
-            
+        }
             
         //判断整个界面是否有红色色块，如果有，则战继续，否则战斗结束
         // 只提取橙色
