@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using BetterGenshinImpact.GameTask.BearingSteel;
 using static BetterGenshinImpact.GameTask.Common.TaskControl;
 
 namespace BetterGenshinImpact.GameTask.AutoFight.Script;
@@ -27,7 +28,7 @@ public class CombatScriptBag(List<CombatScript> combatScripts)
                     matchCount++;
                 }
 
-                if (matchCount != avatars.Count) continue;
+                if (matchCount != avatars.Count && CombatScripts[0].Name != "自动EQ") continue;
                 // Logger.LogInformation("匹配到战斗脚本：{Name}，共{Cnt}条指令，涉及角色：{Str}", 
                 // combatScript.Name, combatScript.CombatCommands.Count, string.Join(",", combatScript.AvatarNames)); 
                 Logger.LogInformation("匹配到战斗脚本：{Name}", combatScript.Name); 

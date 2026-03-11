@@ -261,7 +261,8 @@ public class AutoFightTask : ISoloTask
             .ToList();
         if (commandAvatarNames.Count <= 0)
         {
-            throw new Exception("没有可用战斗脚本");
+            if (!BearingSteelConfig.GetBearingSteelAutoSkill(_taskParam.CombatStrategyPath))
+                throw new Exception("没有可用战斗脚本");
         }
 
         // 新的取消token
@@ -383,7 +384,7 @@ public class AutoFightTask : ISoloTask
                     {
                         //获取最低cd
                         var minCoolDown = commandAvatarNames.Select(a => combatScenes.SelectAvatar(a)).WhereNotNull()
-                            .Select(a => a.GetSkillCdSeconds()).Min();
+                            .Select(a => a.GetSkillCdSeconds()).DefaultIfEmpty(0).Min();
                         if (minCoolDown > 0)
                         {
                             Logger.LogInformation("队伍中所有角色的技能都在冷却中,等待{MinCoolDown}秒后继续。", Math.Round(minCoolDown, 2));
@@ -394,8 +395,11 @@ public class AutoFightTask : ISoloTask
                     var skipFightName = "";
 
                     #endregion
-                    
-                    for (var i = 0; i < combatCommands.Count; i++)
+
+                    if (combatCommands.Count == 0)
+                        await AutoEQ(-1);
+
+                    for (var i = 0; i < combatCommands.Count; await AutoEQ(i), i++)
                     {
                         var command = combatCommands[i];
                         var lastCommand = i == 0 ? command : combatCommands[i - 1];
@@ -570,53 +574,60 @@ public class AutoFightTask : ISoloTask
                                 fightEndFlag = await CheckFightFinish(delayTime, detectDelayTime);
                             }
                         }
-
-
-                        #region 自动EQ
-
-                        async Task AddCommand(ImageRegion imageRegion, int index, Avatar avatar, bool isE)
+                        if (fightEndFlag)
                         {
-                            if (index <= combatScenes.AvatarCount)
-                                if (isE
-                                        ? combatScenes.SelectAvatar(index).GetSkillCdSeconds() <= 0
-                                        : await AutoFightSkill.IsAvatarQSkillAsync(imageRegion, index, false))
-                                {
-                                    Logger.LogInformation("检测到{index}技能{isE}可用 ", avatar.Name, isE ? "E" : "Q");
-                                    if (isE && "钟离 夏沃蕾".Split(' ').Contains(avatar.Name))
-                                    {
-                                        combatCommands.Add(new CombatCommand(avatar.Name, "click(middle)"));
-                                        combatCommands.Add(new CombatCommand(avatar.Name, "e(hold)"));
-                                    }
-                                    else if (isE && avatar.Name == "枫原万叶")
-                                    {
-                                        combatCommands.Add(new CombatCommand(avatar.Name, "e(hold,0.6)"));
-                                        combatCommands.Add(new CombatCommand(avatar.Name, "attack(0.6)"));
-                                        combatCommands.Add(new CombatCommand(avatar.Name, "wait(0.2)"));
-                                    }
-                                    else if (isE && combatScenes.SelectAvatar(index).Name == "白术")
-                                    {
-                                        combatCommands.Add(new CombatCommand(avatar.Name, "e"));
-                                        combatCommands.Add(new CombatCommand(avatar.Name, "e"));
-                                    }
-                                    else
-                                    {
-                                        combatCommands.Add(new CombatCommand(avatar.Name, isE ? "e" : "q"));
-                                    }
-                                }
+                            break;
                         }
+                    }
 
-                        if (BearingSteelConfig.GetBearingSteelAutoSkill() &&
-                            i == combatCommands.Count - 1)
+
+                    #region 自动EQ
+
+                    async Task AddCommand(ImageRegion imageRegion, int index, Avatar avatar, bool isE)
+                    {
+                        if (index <= combatScenes.AvatarCount)
+                            if (isE
+                                    ? combatScenes.SelectAvatar(index).GetSkillCdSeconds() <= 0
+                                    : await AutoFightSkill.IsAvatarQSkillAsync(imageRegion, index, false))
+                            {
+                                Logger.LogInformation("检测到{index}技能{isE}可用 ", avatar.Name, isE ? "E" : "Q");
+                                if (isE && "钟离 夏沃蕾".Split(' ').Contains(avatar.Name))
+                                {
+                                    combatCommands.Add(new CombatCommand(avatar.Name, "click(middle)"));
+                                    combatCommands.Add(new CombatCommand(avatar.Name, "e(hold)"));
+                                }
+                                else if (isE && avatar.Name == "枫原万叶")
+                                {
+                                    combatCommands.Add(new CombatCommand(avatar.Name, "e(hold,0.6)"));
+                                    combatCommands.Add(new CombatCommand(avatar.Name, "attack(0.6)"));
+                                    combatCommands.Add(new CombatCommand(avatar.Name, "wait(0.2)"));
+                                }
+                                else if (isE && combatScenes.SelectAvatar(index).Name == "白术")
+                                {
+                                    combatCommands.Add(new CombatCommand(avatar.Name, "e"));
+                                    combatCommands.Add(new CombatCommand(avatar.Name, "e"));
+                                }
+                                else
+                                {
+                                    combatCommands.Add(new CombatCommand(avatar.Name, isE ? "e" : "q"));
+                                }
+                            }
+                    }
+
+                    async Task AutoEQ(int i)
+                    {
+                        if (i == combatCommands.Count - 1 &&
+                            BearingSteelConfig.GetBearingSteelAutoSkill(_taskParam.CombatStrategyPath))
                         {
                             var imageRegion = CaptureToRectArea();
-                            await AddCommand(imageRegion, 1, combatScenes.SelectAvatar(1), false);
-                            await AddCommand(imageRegion, 2, combatScenes.SelectAvatar(2), false);
-                            await AddCommand(imageRegion, 3, combatScenes.SelectAvatar(3), false);
-                            await AddCommand(imageRegion, 4, combatScenes.SelectAvatar(4), false);
                             await AddCommand(imageRegion, 1, combatScenes.SelectAvatar(1), true);
+                            await AddCommand(imageRegion, 1, combatScenes.SelectAvatar(1), false);
                             await AddCommand(imageRegion, 2, combatScenes.SelectAvatar(2), true);
+                            await AddCommand(imageRegion, 2, combatScenes.SelectAvatar(2), false);
                             await AddCommand(imageRegion, 3, combatScenes.SelectAvatar(3), true);
+                            await AddCommand(imageRegion, 3, combatScenes.SelectAvatar(3), false);
                             await AddCommand(imageRegion, 4, combatScenes.SelectAvatar(4), true);
+                            await AddCommand(imageRegion, 4, combatScenes.SelectAvatar(4), false);
                             if (i == combatCommands.Count - 1)
                             {
                                 Logger.LogInformation("{x}", "暂无可用的角色EQ,当前出场角色尝试按Q，以及0.6s等待");
@@ -624,15 +635,9 @@ public class AutoFightTask : ISoloTask
                                 combatCommands.Add(new CombatCommand(combatCommands[i].Name, "wait(0.6)"));
                             }
                         }
-
-                        #endregion
-                        
-                        
-                        if (fightEndFlag)
-                        {
-                            break;
-                        }
                     }
+
+                    #endregion
 
 
                     if (fightEndFlag)

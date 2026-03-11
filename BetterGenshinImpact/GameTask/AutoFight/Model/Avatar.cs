@@ -291,24 +291,27 @@ public class Avatar
             // 切换成功
             if (BearingSteelConfig.GetBearingSteelConfigEnable())
             {
-                var assetScale = TaskContext.Instance().SystemInfo.AssetScale;
-                var pixelColor = CaptureToRectArea().SrcMat;
+                var pixelColors = CaptureToRectArea().SrcMat;
+                var whiteCount = 0;
                 var minItem = new List<Vec3b>
                     {
-                        pixelColor.At<Vec3b>((int)(260 * assetScale), (int)(1860 * assetScale)),
-                        pixelColor.At<Vec3b>((int)(350 * assetScale), (int)(1860 * assetScale)),
-                        pixelColor.At<Vec3b>((int)(440 * assetScale), (int)(1860 * assetScale)),
-                        pixelColor.At<Vec3b>((int)(530 * assetScale), (int)(1860 * assetScale))
+                        pixelColors.At<Vec3b>(260, 1862),
+                        pixelColors.At<Vec3b>(350, 1862),
+                        pixelColors.At<Vec3b>(440, 1862),
+                        pixelColors.At<Vec3b>(530, 1862)
                     }
-                    .Select((item, index) => new
-                        { Sum = item.Item0 + item.Item1 + item.Item2, Index = index })
+                    .Select((item, index) =>
+                    {
+                        if (item.Item0 + item.Item2 + item.Item0 == 255 * 3)
+                            whiteCount++;
+                        return new { Sum = item.Item0 + item.Item1 + item.Item2, Index = index };
+                    })
                     .MinBy(x => x.Sum);
-                if (Index == (minItem == null ? 0 : minItem.Index + 1))
+                if (whiteCount == 3 && Index == (minItem == null ? 0 : minItem.Index + 1))
                 {
                     return true;
                 }
             }
-            else
             if (CombatScenes.GetActiveAvatarIndex(region, context) == Index)
             {
                 // if (needLog && i > 0)
