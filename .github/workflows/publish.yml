@@ -26,6 +26,11 @@ on:
         description: '上传到 Steambird'
         required: true
         default: false
+      only-build-portable:
+        type: boolean
+        description: '只构建压缩包版'
+        required: true
+        default: true
 
 jobs:
   # Add validation job to check version format
@@ -193,6 +198,7 @@ jobs:
           path: dist/BetterGI_*.7z
 
   build_installer:
+    if: github.event.inputs.only-build-portable == 'false'
     runs-on: windows-latest
     needs: [validate, build_dist]
     steps:
@@ -309,6 +315,7 @@ jobs:
           path: dist/BetterGI/BetterGI.update.exe
 
   build_setup:
+    if: github.event.inputs.only-build-portable == 'false'
     runs-on: windows-latest
     needs: [validate, build_dist]
     steps:

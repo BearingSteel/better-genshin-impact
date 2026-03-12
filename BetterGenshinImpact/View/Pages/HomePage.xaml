@@ -544,6 +544,252 @@
             </StackPanel>
         </ui:CardExpander>
 
+        
+        <ui:CardExpander Margin="0,0,0,12"
+                         ContentPadding="0"
+                         Icon="{ui:SymbolIcon Settings24}">
+            <ui:CardExpander.Header>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBlock Grid.Row="0"
+                                  Grid.Column="0"
+                                  FontTypography="Body"
+                                  Foreground="LimeGreen"
+                                  FontWeight="Bold"
+                                  TextWrapping="Wrap">
+                        <Run Text="个人向设置" /> 
+                        <InlineUIContainer>
+                            <Border Width="10" />
+                        </InlineUIContainer>
+                        <Hyperlink 
+                            NavigateUri="https://github.com/BearingSteel/better-genshin-impact/releases"
+                            RequestNavigate="HyperlinkRequestNavigate"
+                            Foreground="DeepSkyBlue">
+                            <Run Text="&#128279;最新版下载页" />
+                        </Hyperlink>
+                        <InlineUIContainer>
+                            <Border Width="10" />
+                        </InlineUIContainer>
+                        <Hyperlink 
+                            NavigateUri="https://github.com/BearingSteel/better-genshin-impact"
+                            RequestNavigate="HyperlinkRequestNavigate"
+                            Foreground="DeepSkyBlue">
+                            <Run Text="&#128279;项目地址" />
+                        </Hyperlink>
+                    </ui:TextBlock>
+                    
+                    <ui:TextBlock Grid.Row="1"
+                                  Grid.Column="0"
+                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                  Text="个人向设置，关闭之后四舍五入等于原版吧（或许）？？？"
+                                  TextWrapping="Wrap" />
+                    <ui:ToggleSwitch Grid.Row="0"
+                                     Grid.RowSpan="2"
+                                     Grid.Column="1"
+                                     Margin="0,0,24,0"
+                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable, Mode=TwoWay}" />
+                </Grid>
+            </ui:CardExpander.Header>
+            <StackPanel>
+                <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
+
+
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBlock Grid.Row="0"
+                                  Grid.Column="0"
+                                  FontTypography="Body"
+                                  TextWrapping="Wrap">
+                        <Run Foreground="LimeGreen" 
+                             Text="【个人向设置】" 
+                             FontWeight="Bold"/>
+                        <Run Text="执行完一遍战斗策略后进入自动EQ模式" />
+                    </ui:TextBlock>
+                    <ui:TextBlock Grid.Row="1"
+                                  Grid.Column="0"
+                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                  Text="开启后会自动识别并试用角色EQ，关闭为循环执行战斗策略"
+                                  TextWrapping="Wrap" />
+                    <ui:ToggleSwitch Grid.Row="0"
+                                     Grid.RowSpan="2"
+                                     Grid.Column="1"
+                                     Margin="0,0,38,0"
+                                     IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
+                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelAutoSkill}" />
+                </Grid>
+
+
+                <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
+
+
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBlock Grid.Row="0"
+                                  Grid.Column="0"
+                                  FontTypography="Body"
+                                  TextWrapping="Wrap">
+                        <Run Foreground="LimeGreen"
+                             Text="【个人向设置】"
+                             FontWeight="Bold" />
+                        <Run Text="自动吃料理" />
+                    </ui:TextBlock>
+                    <ui:TextBlock Grid.Row="1"
+                                  Grid.Column="0"
+                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                  Text="开启后行走或战斗中红血自动吃料理，切阵亡角色时吃复活药"
+                                  TextWrapping="Wrap" />
+                    <ui:ToggleSwitch Grid.Row="0"
+                                     Grid.RowSpan="2"
+                                     Grid.Column="1"
+                                     Margin="0,0,38,0"
+                                     IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
+                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelAutoEatEgg}" />
+                </Grid>
+
+
+                <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
+
+
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBlock Grid.Row="0"
+                                  Grid.Column="0"
+                                  FontTypography="Body"
+                                  TextWrapping="Wrap">
+                        <Run Foreground="LimeGreen"
+                             Text="【个人向设置】"
+                             FontWeight="Bold" />
+                        <Run Text="部分场景延迟减少" />
+                    </ui:TextBlock>
+                    <ui:TextBlock Grid.Row="1"
+                                  Grid.Column="0"
+                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                  Text="部分场景延迟减少（可能不稳定）"
+                                  TextWrapping="Wrap" />
+                    <ui:ToggleSwitch Grid.Row="0"
+                                     Grid.RowSpan="2"
+                                     Grid.Column="1"
+                                     Margin="0,0,38,0"
+                                     IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
+                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelReduceWait}" />
+                </Grid>
+
+
+                <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
+
+
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBlock Grid.Row="0"
+                                  Grid.Column="0"
+                                  FontTypography="Body"
+                                  TextWrapping="Wrap">
+                        <Run Foreground="LimeGreen"
+                             Text="【个人向设置】"
+                             FontWeight="Bold" />
+                        <Run Text="切人成功后立刻识别一次战斗是否结束" />
+                    </ui:TextBlock>
+
+                    <ui:TextBlock Grid.Row="1"
+                                  Grid.Column="0"
+                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                  Text="开启后，会在切人成功后立刻识别一次战斗是否结束&#10;优势是切人成功瞬间没有后摇，按L一定成功"
+                                  TextWrapping="Wrap" />
+
+                    <ui:ToggleSwitch Grid.Row="0"
+                                     Grid.RowSpan="2"
+                                     Grid.Column="2"
+                                     Margin="0,0,38,0"
+                                     IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
+                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelCheckAfterSwitch, Mode=TwoWay}" />
+                </Grid>
+
+
+                <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
+
+
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBlock Grid.Row="0"
+                                  Grid.Column="0"
+                                  FontTypography="Body"
+                                  TextWrapping="Wrap">
+                        <Run Foreground="LimeGreen"
+                             Text="【个人向设置】"
+                             FontWeight="Bold" />
+                        <Run Text="检测到精英怪才聚集掉落物" />
+                    </ui:TextBlock>
+
+                    <ui:TextBlock Grid.Row="1"
+                                  Grid.Column="0"
+                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                  Text="开启后，仅在战斗过程中检测到精英怪才触发聚集掉落物"
+                                  TextWrapping="Wrap" />
+
+                    <ui:ToggleSwitch Grid.Row="0"
+                                     Grid.RowSpan="2"
+                                     Grid.Column="2"
+                                     Margin="0,0,38,0"
+                                     IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
+                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelCheckElitePickUp, Mode=TwoWay}" />
+                </Grid>
+
+
+                <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
+                
+            </StackPanel>
+        </ui:CardExpander>
+
         <!--<ui:Button x:Name="Test" Margin="0,20,0,0" Content="测试" Command="{Binding TestCommand}" />-->
 
 
