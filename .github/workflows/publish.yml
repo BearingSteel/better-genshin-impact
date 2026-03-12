@@ -353,8 +353,12 @@ jobs:
 
   # 创建 GitHub Release
   create_release:
-    if: github.event.inputs.create-release == 'true'
     needs: [validate, build_dist, build_installer]
+    if: |
+      always() &&
+      github.event.inputs.create-release == 'true' &&
+      !failure() &&
+      !cancelled()
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -373,7 +377,7 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             artifacts/BetterGI_7z/*.7z
-            artifacts/BetterGI_Install/*.exe
+            ${{ github.event.inputs.only-build-portable == 'true' && '' || 'artifacts/BetterGI_Install/*.exe' }}
 
   mirrorchyan_uploading:
     if: github.repository_owner == 'babalae' && contains(needs.validate.outputs.version, '-')
