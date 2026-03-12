@@ -374,10 +374,10 @@ jobs:
           name: BetterGI v${{ needs.validate.outputs.version }}
           draft: true
           prerelease: ${{ contains(needs.validate.outputs.version, '-') }}
-          fail_on_unmatched_files: true
+          fail_on_unmatched_files: false
           files: |
             artifacts/BetterGI_7z/*.7z
-            ${{ github.event.inputs.only-build-portable == 'true' && '' || 'artifacts/BetterGI_Install/*.exe' }}
+            artifacts/BetterGI_Install/*.exe
 
   mirrorchyan_uploading:
     if: github.repository_owner == 'babalae' && contains(needs.validate.outputs.version, '-')
