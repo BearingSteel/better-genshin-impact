@@ -666,7 +666,6 @@ public class AutoFightTask : ISoloTask
                         {
                             var imageRegion = CaptureToRectArea();
                             string current = combatScenes.CurrentAvatar()!;
-                            Logger.LogInformation("current = {x}", current);
                             var r = await AddCommand(imageRegion, 1, "e", current) +
                                     await AddCommand(imageRegion, 1, "q", current) > 0 ||
                                     await AddCommand(imageRegion, 2, "e", current) +
@@ -678,7 +677,6 @@ public class AutoFightTask : ISoloTask
 
                             if (!r)
                             {
-                                Logger.LogInformation("{x}", "暂无可用的角色EQ,等待0.6s");
                                 await Delay(200, ct);
                                 combatCommands.Add(new CombatCommand(current, "wait(0.4)"));
                             }
