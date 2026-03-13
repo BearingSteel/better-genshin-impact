@@ -547,7 +547,7 @@
         
         <ui:CardExpander Margin="0,0,0,12"
                          ContentPadding="0"
-                         Icon="{ui:SymbolIcon Settings24}">
+                         Icon="{ui:SymbolIcon ContactCard24}">
             <ui:CardExpander.Header>
                 <Grid>
                     <Grid.RowDefinitions>
@@ -749,6 +749,8 @@
 
                 <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
 
+                
+                
 
                 <Grid Margin="16">
                     <Grid.RowDefinitions>
@@ -767,13 +769,13 @@
                         <Run Foreground="LimeGreen"
                              Text="【个人向设置】"
                              FontWeight="Bold" />
-                        <Run Text="检测到精英怪才聚集掉落物" />
+                        <Run Text="角色技能CD优化" />
                     </ui:TextBlock>
 
                     <ui:TextBlock Grid.Row="1"
                                   Grid.Column="0"
                                   Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                                  Text="开启后，仅在战斗过程中检测到精英怪才触发聚集掉落物"
+                                  Text="优化新进战斗,不知道技能cd导致的罚站"
                                   TextWrapping="Wrap" />
 
                     <ui:ToggleSwitch Grid.Row="0"
@@ -781,11 +783,12 @@
                                      Grid.Column="2"
                                      Margin="0,0,38,0"
                                      IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
-                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelCheckElitePickUp, Mode=TwoWay}" />
+                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelAvatarCD, Mode=TwoWay}" />
                 </Grid>
 
 
                 <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
+
                 
             </StackPanel>
         </ui:CardExpander>

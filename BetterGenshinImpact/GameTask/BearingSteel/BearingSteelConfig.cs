@@ -32,6 +32,9 @@ public partial class BearingSteelConfig : ObservableObject
     
     [ObservableProperty]
     private bool _bearingSteelCheckAfterSwitch = true;
+    
+    [ObservableProperty]
+    private bool _bearingSteelAvatarCD = true;
 
 
     public static bool GetBearingSteelConfigEnable()
@@ -71,5 +74,10 @@ public partial class BearingSteelConfig : ObservableObject
     {
         return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelConfigEnable
         && TaskContext.Instance().Config.BearingSteelConfig.BearingSteelCheckAfterSwitch;
+    }
+    public static bool GetBearingSteelAvatarCD()
+    {
+        return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelConfigEnable
+        && TaskContext.Instance().Config.BearingSteelConfig.BearingSteelAvatarCD;
     }
 }

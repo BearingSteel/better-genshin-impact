@@ -381,7 +381,7 @@ public class AutoFightTask : ISoloTask
             {
                 Debug.WriteLine(e.Message);
                 Debug.WriteLine(e.StackTrace);
-                throw;
+                Logger.LogInformation("ocrTask:{e}",e.Message);
             }
         },cts2.Token);
 
@@ -660,8 +660,10 @@ public class AutoFightTask : ISoloTask
                             if (i == combatCommands.Count - 1)
                             {
                                 Logger.LogInformation("{x}", "暂无可用的角色EQ,当前出场角色尝试按Q，以及0.6s等待");
-                                combatCommands.Add(new CombatCommand(combatCommands[i].Name, "q"));
-                                combatCommands.Add(new CombatCommand(combatCommands[i].Name, "wait(0.6)"));
+                                combatCommands.Add(new CombatCommand(
+                                    i >= 0 ? combatCommands[i].Name : combatScenes.CurrentAvatar()!, "q"));
+                                combatCommands.Add(new CombatCommand(
+                                    i >= 0 ? combatCommands[i].Name : combatScenes.CurrentAvatar()!, "wait(0.6)"));
                             }
                         }
                     }
