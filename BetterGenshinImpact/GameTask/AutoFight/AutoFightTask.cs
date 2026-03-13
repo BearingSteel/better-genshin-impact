@@ -616,13 +616,13 @@ public class AutoFightTask : ISoloTask
 
                     #region 自动EQ
 
-                    async Task<int> AddCommand(ImageRegion imageRegion, int index, string isE, string? current)
+                    async Task AddCommand(ImageRegion imageRegion, int index, string isE, string? current)
                     {
                         var avatar = combatScenes.SelectAvatar(index);
                         if (index > combatScenes.AvatarCount)
-                            return 0;
+                            return;
                         if (index.ToString() == _taskParam.GuardianAvatar)
-                            return 0;
+                            return;
                         if (isE == "e" && avatar.GetSkillCdSeconds() <= 0)
                         {
                             Logger.LogInformation("检测到{index}技能{isE}可用 ", avatar.Name, isE);
@@ -646,17 +646,13 @@ public class AutoFightTask : ISoloTask
                             {
                                 combatCommands.Add(new CombatCommand(avatar.Name, isE));
                             }
-
-                            return 1;
                         }
-                        else if (await AutoFightSkill.IsAvatarQSkillAsync(imageRegion, index, current == avatar.Name))
+                        else if (isE == "q" &&
+                                 await AutoFightSkill.IsAvatarQSkillAsync(imageRegion, index, current == avatar.Name))
                         {
                             Logger.LogInformation("检测到{index}技能{isE}可用 ", avatar.Name, isE);
                             combatCommands.Add(new CombatCommand(avatar.Name, isE));
-                            return 1;
                         }
-
-                        return 0;
                     }
 
                     async Task AutoEQ(int i)
@@ -666,17 +662,19 @@ public class AutoFightTask : ISoloTask
                         {
                             var imageRegion = CaptureToRectArea();
                             string current = combatScenes.CurrentAvatar()!;
-                            var r = await AddCommand(imageRegion, 1, "e", current) +
-                                    await AddCommand(imageRegion, 1, "q", current) > 0 ||
-                                    await AddCommand(imageRegion, 2, "e", current) +
-                                    await AddCommand(imageRegion, 2, "q", current) > 0 ||
-                                    await AddCommand(imageRegion, 3, "e", current) +
-                                    await AddCommand(imageRegion, 3, "q", current) > 0 ||
-                                    await AddCommand(imageRegion, 4, "e", current) +
-                                    await AddCommand(imageRegion, 4, "q", current) > 0;
+                            await AddCommand(imageRegion, 1, "e", current);
+                            await AddCommand(imageRegion, 1, "q", current);
+                            await AddCommand(imageRegion, 2, "e", current);
+                            await AddCommand(imageRegion, 2, "q", current);
+                            await AddCommand(imageRegion, 3, "e", current);
+                            await AddCommand(imageRegion, 3, "q", current);
+                            await AddCommand(imageRegion, 4, "e", current);
+                            await AddCommand(imageRegion, 4, "q", current);
 
-                            if (!r)
+                            if (i == combatCommands.Count - 1)
                             {
+                                Logger.LogInformation("当前无可用EQ，尝试按下前台角色Q，并等待0.6s");
+                                Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
                                 await Delay(200, ct);
                                 combatCommands.Add(new CombatCommand(current, "wait(0.4)"));
                             }
@@ -848,9 +846,10 @@ public class AutoFightTask : ISoloTask
                     if (forcePickup || !shouldSkip)
                     {
                         Logger.LogInformation("使用 枫原万叶-长E 拾取掉落物");
-                        await Delay(200, ct);
                         if (picker.TrySwitch(10))
                         {
+                            await Delay(50, ct);
+                            picker.AfterUseSkill();
                             await picker.WaitSkillCd(ct);
                             picker.UseSkill(true);
                             await Delay(50, ct);

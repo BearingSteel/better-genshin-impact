@@ -347,10 +347,6 @@ public class Avatar
                     .MinBy(x => x.Sum);
                 if (whiteCount == 3 && Index == (minItem == null ? 0 : minItem.Index + 1))
                 {
-                    if (i != 0 && BearingSteelConfig.GetBearingSteelAvatarCD())
-                    {
-                        var ecd = GetSkillCurrentCd(image);
-                    }
                     return true;
                 }
             }

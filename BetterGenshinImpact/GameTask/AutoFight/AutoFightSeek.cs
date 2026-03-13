@@ -731,36 +731,24 @@ namespace BetterGenshinImpact.GameTask.AutoFight
 
         public static async Task<bool> IsAvatarQSkillAsync(ImageRegion image, int index, bool isAvatarCurrent)
         {
+            if (isAvatarCurrent)
+                return false;
             var result = false;
             image.SrcMat.ConvertTo(image.SrcMat, MatType.CV_8UC3, alpha: 2, beta: -200); // 增加亮度和对比度
             {
-                var skillArea = !isAvatarCurrent ? AutoFightAssets.Instance.AvatarQRectListMap[index - 1]: new Rect(1762, 915, 114, 111);
+                var skillArea = AutoFightAssets.Instance.AvatarQRectListMap[index - 1];
                 using var grayImage = image.DeriveCrop(skillArea).SrcMat.CvtColor(ColorConversionCodes.BGR2GRAY);
                 var meanBrightness = Cv2.Mean(grayImage);
                 var avgBrightness = meanBrightness.Val0;
                 var threshold1 = avgBrightness * 0.9;
                 var threshold2 = avgBrightness * 2;
                 Cv2.Canny(grayImage, grayImage, threshold1: (float)threshold1, threshold2: (float)threshold2);
-                var circles = isAvatarCurrent
-                    ? Cv2.HoughCircles(grayImage, HoughModes.Gradient, dp: 1.2, minDist: 20,
-                        param1: 90, param2: 35, minRadius: 50, maxRadius: 60)
-                    : Cv2.HoughCircles(grayImage, HoughModes.Gradient, dp: 1.2, minDist: 20,
+                var circles = Cv2.HoughCircles(grayImage, HoughModes.Gradient, dp: 1.2, minDist: 20,
                         param1: 70, param2: 30, minRadius: 25, maxRadius: 34);
-        
+
                 if (circles.Length > 0)
                 {
-                    if (!isAvatarCurrent)
-                    {
-                        result = true;
-                    }
-                    else
-                    {
-                        using var eRa = image.DeriveCrop(AutoFightAssets.Instance.QRect);
-                        using var eRaWhite = OpenCvCommonHelper.InRangeHsv(eRa.SrcMat, new Scalar(0, 0, 235),
-                            new Scalar(0, 25, 255));
-                        var QCDtext = OcrFactory.Paddle.OcrWithoutDetector(eRaWhite);
-                        result = StringUtils.TryParseDouble(QCDtext) == 0; 
-                    }
+                    result = true;
                 }
             }
             return result;
