@@ -969,7 +969,7 @@ public class AutoFightTask : ISoloTask
     {
         // 前两次不检测
         times++;
-        if (times <= 3 && BearingSteelConfig.GetBearingSteelConfigEnable())
+        if (times <= 2 && BearingSteelConfig.GetBearingSteelConfigEnable())
         {
             return false;
         }

@@ -353,8 +353,12 @@ jobs:
 
   # 创建 GitHub Release
   create_release:
-    if: github.event.inputs.create-release == 'true'
     needs: [validate, build_dist, build_installer]
+    if: |
+      always() &&
+      github.event.inputs.create-release == 'true' &&
+      !failure() &&
+      !cancelled()
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -370,7 +374,7 @@ jobs:
           name: BetterGI v${{ needs.validate.outputs.version }}
           draft: true
           prerelease: ${{ contains(needs.validate.outputs.version, '-') }}
-          fail_on_unmatched_files: true
+          fail_on_unmatched_files: false
           files: |
             artifacts/BetterGI_7z/*.7z
             artifacts/BetterGI_Install/*.exe
