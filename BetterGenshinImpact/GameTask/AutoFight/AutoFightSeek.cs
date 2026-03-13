@@ -12,10 +12,13 @@ using System;
 using BetterGenshinImpact.GameTask.AutoFight.Assets;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using BetterGenshinImpact.Core.Recognition.OCR;
 using BetterGenshinImpact.GameTask.Common.BgiVision;
 using BetterGenshinImpact.GameTask.Common.Element.Assets;
 using  OpenCvSharp;
 using BetterGenshinImpact.GameTask.Model.Area;
+using BetterGenshinImpact.Helpers;
 
 namespace BetterGenshinImpact.GameTask.AutoFight
 {
@@ -738,12 +741,26 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                 var threshold1 = avgBrightness * 0.9;
                 var threshold2 = avgBrightness * 2;
                 Cv2.Canny(grayImage, grayImage, threshold1: (float)threshold1, threshold2: (float)threshold2);
-                var circles = Cv2.HoughCircles(grayImage, HoughModes.Gradient, dp: 1.2, minDist: 20,
-                    param1: 90, param2:!isAvatarCurrent ? 25 : 35, minRadius: !isAvatarCurrent ? 25 : 50, maxRadius:!isAvatarCurrent ? 34 : 60);
+                var circles = isAvatarCurrent
+                    ? Cv2.HoughCircles(grayImage, HoughModes.Gradient, dp: 1.2, minDist: 20,
+                        param1: 90, param2: 35, minRadius: 50, maxRadius: 60)
+                    : Cv2.HoughCircles(grayImage, HoughModes.Gradient, dp: 1.2, minDist: 20,
+                        param1: 70, param2: 30, minRadius: 25, maxRadius: 34);
         
                 if (circles.Length > 0)
                 {
-                    result = true;
+                    if (!isAvatarCurrent)
+                    {
+                        result = true;
+                    }
+                    else
+                    {
+                        using var eRa = image.DeriveCrop(AutoFightAssets.Instance.QRect);
+                        using var eRaWhite = OpenCvCommonHelper.InRangeHsv(eRa.SrcMat, new Scalar(0, 0, 235),
+                            new Scalar(0, 25, 255));
+                        var QCDtext = OcrFactory.Paddle.OcrWithoutDetector(eRaWhite);
+                        result = StringUtils.TryParseDouble(QCDtext) == 0; 
+                    }
                 }
             }
             return result;

@@ -328,7 +328,8 @@ public class Avatar
             // 切换成功
             if (BearingSteelConfig.GetBearingSteelConfigEnable())
             {
-                var pixelColors = CaptureToRectArea().SrcMat;
+                var image = CaptureToRectArea();
+                var pixelColors = image.SrcMat;
                 var whiteCount = 0;
                 var minItem = new List<Vec3b>
                     {
@@ -346,6 +347,10 @@ public class Avatar
                     .MinBy(x => x.Sum);
                 if (whiteCount == 3 && Index == (minItem == null ? 0 : minItem.Index + 1))
                 {
+                    if (i != 0 && BearingSteelConfig.GetBearingSteelAvatarCD())
+                    {
+                        var ecd = GetSkillCurrentCd(image);
+                    }
                     return true;
                 }
             }
@@ -609,6 +614,11 @@ public class Avatar
         if (cd > 0 && cd <= CombatAvatar.SkillCd)
         {
             OcrSkillCd = DateTime.UtcNow.AddSeconds(cd);
+        }
+        if (cd == 0 && BearingSteelConfig.GetBearingSteelAvatarCD())
+        {
+            OcrSkillCd = DateTime.MinValue;
+            LastSkillTime = DateTime.MinValue;
         }
 
         return cd;

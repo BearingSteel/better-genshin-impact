@@ -22,9 +22,12 @@ public class ReturnMainUiTask
         }
         if (BearingSteelConfig.GetBearingSteelConfigEnable())
         {
-            await Delay(900, ct);
-            if (Bv.IsInMainUi(CaptureToRectArea()))
-                return;
+            for (var i = 0; i < 8; i++)
+            {
+                await Delay(100, ct);
+                if (Bv.IsInMainUi(CaptureToRectArea()))
+                    return;
+            }
         }
 
         for (var i = 0; i < 8; i++)
