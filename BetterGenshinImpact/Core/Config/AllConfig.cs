@@ -24,6 +24,7 @@ using BetterGenshinImpact.GameTask.AutoStygianOnslaught;
 using BetterGenshinImpact.GameTask.GetGridIcons;
 using BetterGenshinImpact.GameTask.AutoEat;
 using BetterGenshinImpact.GameTask.AutoLeyLineOutcrop;
+using BetterGenshinImpact.GameTask.BearingSteel;
 using BetterGenshinImpact.GameTask.MapMask;
 using BetterGenshinImpact.GameTask.SkillCd;
 using BetterGenshinImpact.GameTask.UseRedeemCode;
@@ -195,6 +196,8 @@ public partial class AllConfig : ObservableObject
     ///     自动战斗配置
     /// </summary>
     public AutoFightConfig AutoFightConfig { get; set; } = new();
+    
+    public BearingSteelConfig BearingSteelConfig { get; set; } = new();
 
     /// <summary>
     ///     自动乐曲配置 - 千音雅集
@@ -323,6 +326,7 @@ public partial class AllConfig : ObservableObject
         HotKeyConfig.PropertyChanged += OnAnyPropertyChanged;
         AutoWoodConfig.PropertyChanged += OnAnyPropertyChanged;
         AutoFightConfig.PropertyChanged += OnAnyPropertyChanged;
+        BearingSteelConfig.PropertyChanged += OnAnyPropertyChanged;
         AutoDomainConfig.PropertyChanged += OnAnyPropertyChanged;
         AutoStygianOnslaughtConfig.PropertyChanged += OnAnyPropertyChanged;
         AutoArtifactSalvageConfig.PropertyChanged += OnAnyPropertyChanged;

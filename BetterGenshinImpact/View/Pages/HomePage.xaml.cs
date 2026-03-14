@@ -1,4 +1,6 @@
-﻿using BetterGenshinImpact.ViewModel.Pages;
+﻿using System.Diagnostics;
+using System.Windows.Navigation;
+using BetterGenshinImpact.ViewModel.Pages;
 
 namespace BetterGenshinImpact.View.Pages
 {
@@ -13,5 +15,22 @@ namespace BetterGenshinImpact.View.Pages
 
             // hotKeyPageViewModel 放在这里是为了在首页就初始化热键
         }
+
+        private void HyperlinkRequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = e.Uri.AbsoluteUri,
+                    UseShellExecute = true
+                });
+                e.Handled = true;
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+            }
+        }
     }
+    
 }

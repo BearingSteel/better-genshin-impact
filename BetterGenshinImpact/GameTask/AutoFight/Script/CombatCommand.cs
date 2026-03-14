@@ -2,6 +2,7 @@
 using BetterGenshinImpact.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TimeSpan = System.TimeSpan;
 using static BetterGenshinImpact.GameTask.Common.TaskControl;
 
@@ -78,7 +79,7 @@ public class CombatCommand
         return $"<CombatCommand {Name}, {Method}({Args}) (rounds {ActivatingRound})>";
     }
 
-    public void Execute(CombatScenes combatScenes, CombatCommand? lastCommand = null)
+    public void Execute(CombatScenes combatScenes, CombatCommand? lastCommand = null,Func<Task<bool>>? callback = null)
     {
         Avatar? avatar = null;
         if (Name == CombatScriptParser.CurrentAvatarName)
@@ -125,6 +126,11 @@ public class CombatCommand
                     avatar.Switch();
                 }
             }
+        }
+
+        if (callback?.Invoke().Result ?? false)
+        {
+            return;
         }
         Execute(avatar);
     }

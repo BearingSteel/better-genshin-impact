@@ -39,7 +39,7 @@ using BetterGenshinImpact.GameTask.Common.Exceptions;
 using BetterGenshinImpact.GameTask.Common.Map.Maps;
 using BetterGenshinImpact.Core.Recognition.OpenCv;
 using BetterGenshinImpact.GameTask.AutoFight;
-using BetterGenshinImpact.GameTask.Common.Job;
+using BetterGenshinImpact.GameTask.BearingSteel;
 
 namespace BetterGenshinImpact.GameTask.AutoPathing;
 
@@ -2256,7 +2256,15 @@ public class PathExecutor
             {
                 SuccessFight++;
             }
-            await Delay(1000, ct);
+
+
+            if (BearingSteelConfig.GetBearingSteelReduceWait() && (waypoint.Action == ActionEnum.Fight.Code ||
+                                                                   waypoint.Action == ActionEnum.CombatScript.Code))
+            {
+                Logger.LogInformation("waypoint.Action={x}",waypoint.Action);
+            }
+            else
+                await Delay(1000, ct);
         }
     }
 
