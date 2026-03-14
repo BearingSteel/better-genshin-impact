@@ -384,14 +384,12 @@ public class AutoFightTask : ISoloTask
                 var period = BearingSteelConfig.GetBearingSteelOcrPeriod();
                 while (!cts2.Token.IsCancellationRequested)
                 {
-                    await OcrEliteFull();
                     await OcrHp();
                     await Delay(period, ct);
+                    await OcrEliteFull();
 
                     if (fightEndFlag)
                     {
-                        await OcrEliteFull();
-                        await Delay(100,ct);
                         await OcrEliteFull();
                         return;
                     }
