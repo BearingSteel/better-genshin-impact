@@ -1,0 +1,49 @@
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System;
+
+namespace BetterGenshinImpact.GameTask.BearingSteel;
+
+
+
+
+
+/// <summary>
+/// 自动战斗配置
+/// </summary>
+[Serializable]
+public partial class BearingSteelConfig : ObservableObject
+{
+
+    
+    [ObservableProperty] 
+    private bool _bearingSteelConfigEnable = true ;
+    
+    [ObservableProperty] 
+    private bool _bearingSteelAutoSkill = true;
+    
+    [ObservableProperty] 
+    private bool _bearingSteelReduceWait = true;
+    
+    [ObservableProperty]
+    private bool _bearingSteelAvatarCD = true;
+    
+    public static bool GetBearingSteelConfigEnable()
+    {
+        return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelConfigEnable;
+    }
+
+    
+    public static bool GetBearingSteelReduceWait()
+    {
+        return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelConfigEnable
+        && TaskContext.Instance().Config.BearingSteelConfig.BearingSteelReduceWait;
+    }
+
+    public static bool GetBearingSteelAvatarCD()
+    {
+        return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelConfigEnable
+        && TaskContext.Instance().Config.BearingSteelConfig.BearingSteelAvatarCD;
+    }
+
+    
+}

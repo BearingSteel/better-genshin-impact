@@ -9,6 +9,7 @@ using BetterGenshinImpact.Helpers;
 using Microsoft.Extensions.Logging;
 using OpenCvSharp;
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ using BetterGenshinImpact.GameTask.AutoGeniusInvokation.Model;
 using BetterGenshinImpact.GameTask.AutoPathing;
 using BetterGenshinImpact.Core.Script;
 using BetterGenshinImpact.GameTask.AutoPathing.Model.Enum;
+using BetterGenshinImpact.GameTask.BearingSteel;
 
 namespace BetterGenshinImpact.GameTask.AutoFight.Model;
 
@@ -50,7 +52,24 @@ public class Avatar
     /// <summary>
     /// 最近一次OCR识别出的CD到期时间
     /// </summary>
-    private DateTime OcrSkillCd { get; set; }
+    private DateTime OcrSkillCd
+    {
+        get
+        {
+            if (BearingSteelConfig.GetBearingSteelAvatarCD())
+            {
+                return OcrSkillCds.TryGetValue(Name, out var cd) ? cd : DateTime.MinValue;
+            }
+            return _ocrSkillCd;
+        }
+        set
+        {
+            _ocrSkillCd = value;
+            OcrSkillCds[Name] = value;
+        }
+    }
+    private DateTime _ocrSkillCd;  
+    private static readonly ConcurrentDictionary<string, DateTime> OcrSkillCds = new ConcurrentDictionary<string, DateTime>();
 
     /// <summary>
     /// 手动配置的技能CD，有它就不使用OCR,小于0为自动
@@ -60,8 +79,25 @@ public class Avatar
     /// <summary>
     /// 最近一次使用元素战技的时间
     /// </summary>
-    public DateTime LastSkillTime { get; set; }
-    
+    public DateTime LastSkillTime
+    {
+        get
+        {
+            if (BearingSteelConfig.GetBearingSteelAvatarCD())
+            {
+                return LastSkillTimes.TryGetValue(Name, out var cd) ? cd : DateTime.MinValue;
+            }
+            return _lastSkillTime;
+        }
+        set
+        {
+            _lastSkillTime = value;
+            LastSkillTimes[Name] = value;
+        }
+    }
+    private DateTime _lastSkillTime;  
+    private static readonly ConcurrentDictionary<string, DateTime> LastSkillTimes = new ConcurrentDictionary<string, DateTime>();
+
     /// <summary>
     /// 元素战技检测锁
     /// </summary>
