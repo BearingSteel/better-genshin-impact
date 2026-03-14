@@ -600,42 +600,7 @@
             <StackPanel>
                 <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
 
-
-                <Grid Margin="16">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <ui:TextBlock Grid.Row="0"
-                                  Grid.Column="0"
-                                  FontTypography="Body"
-                                  TextWrapping="Wrap">
-                        <Run Foreground="LimeGreen"
-                             Text="【个人向设置】"
-                             FontWeight="Bold" />
-                        <Run Text="执行完一遍战斗策略后进入自动EQ模式" />
-                    </ui:TextBlock>
-                    <ui:TextBlock Grid.Row="1"
-                                  Grid.Column="0"
-                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                                  Text="开启后会自动识别并使用角色EQ，关闭为循环执行战斗策略"
-                                  TextWrapping="Wrap" />
-                    <ui:ToggleSwitch Grid.Row="0"
-                                     Grid.RowSpan="2"
-                                     Grid.Column="1"
-                                     Margin="0,0,38,0"
-                                     IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
-                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelAutoSkill}" />
-                </Grid>
                 
-                <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
-
                 <Grid Margin="16">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
