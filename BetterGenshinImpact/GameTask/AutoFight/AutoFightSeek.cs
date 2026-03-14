@@ -453,7 +453,7 @@ namespace BetterGenshinImpact.GameTask.AutoFight
     {
         public static async Task EnsureGuardianSkill(Avatar guardianAvatar, CombatCommand command, string lastFightName,
             string guardianAvatarName, bool guardianAvatarHold, int retryCount, CancellationToken ct,bool guardianCombatSkip = false,
-            bool burstEnabled = false)
+            bool burstEnabled = false,Func<Task<bool>>? callback = null)
         {
             int attempt = 0;
 
@@ -463,6 +463,10 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                 {
                     if (guardianAvatar.TrySwitch(10, false))
                     {
+                        if (callback?.Invoke().Result ?? false)
+                        {
+                            return;
+                        }
                         guardianAvatar.ManualSkillCd = -1;
                         if (await AvatarSkillAsync(Logger, guardianAvatar, false, 1, ct))
                         {
@@ -552,6 +556,10 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                         
                         if (guardianAvatar.TrySwitch(8, false))
                         {
+                            if (callback?.Invoke().Result ?? false)
+                            {
+                                return;
+                            }
                             Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
                             Sleep(500, ct);
                             Simulation.ReleaseAllKey();
@@ -716,6 +724,31 @@ namespace BetterGenshinImpact.GameTask.AutoFight
             }
         
             return Task.FromResult(new List<int>());
+        }
+
+        public static async Task<bool> IsAvatarQSkillAsync(ImageRegion image, int index, bool isAvatarCurrent)
+        {
+            if (isAvatarCurrent)
+                return false;
+            var result = false;
+            image.SrcMat.ConvertTo(image.SrcMat, MatType.CV_8UC3, alpha: 2, beta: -200); // 增加亮度和对比度
+            {
+                var skillArea = AutoFightAssets.Instance.AvatarQRectListMap[index - 1];
+                using var grayImage = image.DeriveCrop(skillArea).SrcMat.CvtColor(ColorConversionCodes.BGR2GRAY);
+                var meanBrightness = Cv2.Mean(grayImage);
+                var avgBrightness = meanBrightness.Val0;
+                var threshold1 = avgBrightness * 0.9;
+                var threshold2 = avgBrightness * 2;
+                Cv2.Canny(grayImage, grayImage, threshold1: (float)threshold1, threshold2: (float)threshold2);
+                var circles = Cv2.HoughCircles(grayImage, HoughModes.Gradient, dp: 1.2, minDist: 20,
+                        param1: 70, param2: 30, minRadius: 25, maxRadius: 34);
+
+                if (circles.Length > 0)
+                {
+                    result = true;
+                }
+            }
+            return result;
         }
     }
 
