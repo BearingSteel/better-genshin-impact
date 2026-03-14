@@ -35,6 +35,9 @@ public partial class BearingSteelConfig : ObservableObject
     
     [ObservableProperty]
     private bool _bearingSteelAvatarCD = true;
+    
+    [ObservableProperty]
+    private int _bearingSteelOcrPeriod = 100;
 
 
     public static bool GetBearingSteelConfigEnable()
@@ -79,5 +82,9 @@ public partial class BearingSteelConfig : ObservableObject
     {
         return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelConfigEnable
         && TaskContext.Instance().Config.BearingSteelConfig.BearingSteelAvatarCD;
+    }
+    public static int GetBearingSteelOcrPeriod()
+    {
+        return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelOcrPeriod;
     }
 }

@@ -1135,11 +1135,12 @@ public class PathExecutor
                 SuccessFight++;
             }
 
-            Logger.LogInformation("waypoint.Action={x}",waypoint.Action);
-            if (BearingSteelConfig.GetBearingSteelReduceWait() && waypoint.Action == ActionEnum.Fight.Code)
-                await Delay(100, ct);
-            else if (BearingSteelConfig.GetBearingSteelReduceWait() && waypoint.Action == ActionEnum.CombatScript.Code)
-                await Delay(100, ct);
+
+            if (BearingSteelConfig.GetBearingSteelReduceWait() && (waypoint.Action == ActionEnum.Fight.Code ||
+                                                                   waypoint.Action == ActionEnum.CombatScript.Code))
+            {
+                Logger.LogInformation("waypoint.Action={x}",waypoint.Action);
+            }
             else
                 await Delay(1000, ct);
         }

@@ -312,49 +312,60 @@ public class AutoFightTask : ISoloTask
                                    && await CheckFightFinish(0, detectDelayTime));
         }
 
-        void OcrHp()
+        async Task OcrHp()
         {
-            if(!BearingSteelConfig.GetBearingSteelAutoEatEgg())
+            if (!BearingSteelConfig.GetBearingSteelAutoEatEgg())
                 return;
             var imageRegion = CaptureToRectArea();
             var textRect = new Rect((int)(880 * _assetScale), (int)(999 * _assetScale),
                 (int)(160 * _assetScale), (int)(22 * _assetScale));
             var textMat = new Mat(imageRegion.SrcMat, textRect);
-            Scalar  White = new Scalar(255, 255, 255);  
-            Mat mask = new Mat();
-            Cv2.InRange(textMat, White, White, mask);
-            var text = OcrFactory.Paddle.Ocr(mask).ReplaceLineEndings("").Replace(" ","");
+            Scalar White = new Scalar(255, 255, 255);
+            Mat whiteMask = new Mat();
+            Cv2.InRange(textMat, White, White, whiteMask);
+            Mat blackMask = new Mat();
+            Cv2.BitwiseNot(whiteMask, blackMask);
+            var text = OcrFactory.Paddle.Ocr(blackMask).ReplaceLineEndings("").Replace(" ", "");
             string pattern = @"^(\d+)/(\d+)$";
             Match match = Regex.Match(text, pattern);
             if (match.Success)
             {
                 uint n1 = uint.Parse(match.Groups[1].Value);
                 uint n2 = uint.Parse(match.Groups[2].Value);
-                if ( n1 <= n2 * 0.3)
+                if (n2 < 150000 && n1 <= n2 * 0.3)
                 {
-                    Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
                     Logger.LogInformation("残血: {text}", text);
+                    Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
+                    await Delay(100, ct);
+                    Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
                 }
             }
+
             imageRegion.Dispose();
         }
-        void OcrEliteFull()
+
+        async Task OcrEliteFull()
         {
-            if(!BearingSteelConfig.GetBearingSteelCheckElitePickUp())
+            if (!BearingSteelConfig.GetBearingSteelCheckElitePickUp())
                 return;
-            if(!_taskParam.KazuhaPickupEnabled)
+            if (!_taskParam.KazuhaPickupEnabled)
                 return;
             if (containElite)
                 return;
             var imageRegion = CaptureToRectArea();
             var textRect = new Rect((int)(276 * _assetScale), (int)(553 * _assetScale),
                 (int)(80 * _assetScale), (int)(272 * _assetScale));
-            var textMat = new Mat(imageRegion.SrcMat, textRect);
-            var text = OcrFactory.Paddle.Ocr(textMat).ReplaceLineEndings(" ");
-            containElite = containElite || text.Split(" ")
-                .Any(code => int.TryParse(code, out var y) && y > 30);
-            if (containElite)
-                Logger.LogInformation("识别到精英 text = {text}", text);
+
+            using (Mat textMat = new Mat(imageRegion.SrcMat, textRect))
+            {
+                var matchService = OcrFactory.PaddleMatch;
+                var threshold = TaskContext.Instance().Config.OtherConfig.OcrConfig.OcrMatchDefaultThreshold;
+                containElite = containElite || matchService.OcrMatch(textMat, "6") > threshold ||
+                               matchService.OcrMatch(textMat, "5") > threshold;
+                if (containElite)
+                    Logger.LogInformation("识别到精英: {a}", OcrFactory.Paddle.Ocr(textMat).ReplaceLineEndings(" "));
+            }
+
             imageRegion.Dispose();
         }
         
@@ -363,19 +374,24 @@ public class AutoFightTask : ISoloTask
         {
             try
             {
-                if (!BearingSteelConfig.GetBearingSteelAutoEatEgg()
-                    &&
-                    (!_taskParam.KazuhaPickupEnabled || !BearingSteelConfig.GetBearingSteelCheckElitePickUp()))
-                    return;
+                if (!BearingSteelConfig.GetBearingSteelAutoEatEgg())
+                {
+                    if (!_taskParam.KazuhaPickupEnabled)
+                        return;
+                    if (!BearingSteelConfig.GetBearingSteelCheckElitePickUp())
+                        return;
+                }
+                     
+                var period = BearingSteelConfig.GetBearingSteelOcrPeriod();
                 while (!cts2.Token.IsCancellationRequested)
                 {
-                    OcrEliteFull();
-                    OcrHp();
-                    await Delay(300, ct);
+                    await OcrEliteFull();
+                    await OcrHp();
+                    await Delay(period, ct);
 
                     if (fightEndFlag)
                     {
-                        OcrEliteFull();
+                        await OcrEliteFull();
                         return;
                     }
                 }
@@ -673,10 +689,10 @@ public class AutoFightTask : ISoloTask
 
                             if (i == combatCommands.Count - 1)
                             {
-                                Logger.LogInformation("当前无可用EQ，尝试按下前台角色Q，并等待0.6s");
+                                Logger.LogInformation("当前无可用EQ，尝试按下前台角色Q，并等待0.4s");
                                 Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
                                 await Delay(200, ct);
-                                combatCommands.Add(new CombatCommand(current, "wait(0.4)"));
+                                combatCommands.Add(new CombatCommand(current, "wait(0.2)"));
                             }
                         }
                     }
@@ -721,6 +737,7 @@ public class AutoFightTask : ISoloTask
         else 
         if (_taskParam.KazuhaPickupEnabled)
         {
+            await OcrEliteFull();
             // 队伍中存在万叶的时候使用一次长E
             var picker = combatScenes.SelectAvatar("枫原万叶") ?? combatScenes.SelectAvatar("琴");
             
@@ -854,7 +871,7 @@ public class AutoFightTask : ISoloTask
                             picker.UseSkill(true);
                             await Delay(50, ct);
                             Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
-                            await Delay(1500, ct);
+                            await Delay(2000, ct);
                         }
                     }
                     else

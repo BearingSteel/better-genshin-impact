@@ -544,7 +544,7 @@
             </StackPanel>
         </ui:CardExpander>
 
-        
+
         <ui:CardExpander Margin="0,0,0,12"
                          ContentPadding="0"
                          Icon="{ui:SymbolIcon ContactCard24}">
@@ -564,11 +564,11 @@
                                   Foreground="LimeGreen"
                                   FontWeight="Bold"
                                   TextWrapping="Wrap">
-                        <Run Text="个人向设置" /> 
+                        <Run Text="个人向设置" />
                         <InlineUIContainer>
                             <Border Width="10" />
                         </InlineUIContainer>
-                        <Hyperlink 
+                        <Hyperlink
                             NavigateUri="https://github.com/BearingSteel/better-genshin-impact/releases"
                             RequestNavigate="HyperlinkRequestNavigate"
                             Foreground="DeepSkyBlue">
@@ -577,14 +577,14 @@
                         <InlineUIContainer>
                             <Border Width="10" />
                         </InlineUIContainer>
-                        <Hyperlink 
+                        <Hyperlink
                             NavigateUri="https://github.com/BearingSteel/better-genshin-impact"
                             RequestNavigate="HyperlinkRequestNavigate"
                             Foreground="DeepSkyBlue">
                             <Run Text="&#128279;项目地址" />
                         </Hyperlink>
                     </ui:TextBlock>
-                    
+
                     <ui:TextBlock Grid.Row="1"
                                   Grid.Column="0"
                                   Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
@@ -616,9 +616,9 @@
                                   Grid.Column="0"
                                   FontTypography="Body"
                                   TextWrapping="Wrap">
-                        <Run Foreground="LimeGreen" 
-                             Text="【个人向设置】" 
-                             FontWeight="Bold"/>
+                        <Run Foreground="LimeGreen"
+                             Text="【个人向设置】"
+                             FontWeight="Bold" />
                         <Run Text="执行完一遍战斗策略后进入自动EQ模式" />
                     </ui:TextBlock>
                     <ui:TextBlock Grid.Row="1"
@@ -632,6 +632,43 @@
                                      Margin="0,0,38,0"
                                      IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
                                      IsChecked="{Binding Config.BearingSteelConfig.BearingSteelAutoSkill}" />
+                </Grid>
+
+
+                <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBlock Grid.Row="0"
+                                  Grid.Column="0"
+                                  FontTypography="Body"
+                                  TextWrapping="Wrap">
+                        <Run Foreground="LimeGreen"
+                             Text="【个人向设置】"
+                             FontWeight="Bold" />
+                        <Run Text="[OCR]检测到精英怪才聚集掉落物" />
+                    </ui:TextBlock>
+
+                    <ui:TextBlock Grid.Row="1"
+                                  Grid.Column="0"
+                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                  Text="开启后，仅在战斗过程中检测到精英怪才触发聚集掉落物"
+                                  TextWrapping="Wrap" />
+
+                    <ui:ToggleSwitch Grid.Row="0"
+                                     Grid.RowSpan="2"
+                                     Grid.Column="2"
+                                     Margin="0,0,38,0"
+                                     IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
+                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelCheckElitePickUp, Mode=TwoWay}" />
                 </Grid>
 
 
@@ -656,7 +693,7 @@
                         <Run Foreground="LimeGreen"
                              Text="【个人向设置】"
                              FontWeight="Bold" />
-                        <Run Text="自动吃料理" />
+                        <Run Text="[OCR]自动吃料理" />
                     </ui:TextBlock>
                     <ui:TextBlock Grid.Row="1"
                                   Grid.Column="0"
@@ -671,6 +708,45 @@
                                      IsChecked="{Binding Config.BearingSteelConfig.BearingSteelAutoEatEgg}" />
                 </Grid>
 
+
+                <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
+
+
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="200" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <ui:TextBlock Grid.Column="0" VerticalAlignment="Center">
+                        <Run Foreground="LimeGreen" Text="【个人向设置】" FontWeight="Bold" />
+                        <Run Text="OCR 文字识别间隔" />
+                    </ui:TextBlock>
+
+                    <ui:TextBlock Grid.Column="1" Text="50" VerticalAlignment="Center" Margin="0,0,12,0" Opacity="0.6" />
+
+                    <Grid Grid.Column="2" VerticalAlignment="Center">
+                        <ui:TextBlock Text="{Binding ElementName=OcrSlider, Path=Value, StringFormat={}{0} ms}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,0,10"
+                                      Foreground="LimeGreen"
+                                      FontWeight="Bold" />
+
+                        <Slider x:Name="OcrSlider"
+                                Minimum="50"
+                                Maximum="300"
+                                Value="{Binding Config.BearingSteelConfig.BearingSteelOcrPeriod, Mode=TwoWay}"
+                                TickFrequency="1"
+                                IsSnapToTickEnabled="True"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Stretch" />
+                    </Grid>
+
+                    <ui:TextBlock Grid.Column="3" Text="300" VerticalAlignment="Center" Margin="12,0,0,0" Opacity="0.6" />
+                </Grid>
 
                 <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
 
@@ -749,8 +825,6 @@
 
                 <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
 
-                
-                
 
                 <Grid Margin="16">
                     <Grid.RowDefinitions>
@@ -786,51 +860,6 @@
                                      IsChecked="{Binding Config.BearingSteelConfig.BearingSteelAvatarCD, Mode=TwoWay}" />
                 </Grid>
 
-
-                <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
-                
-                
-                
-                
-
-                <Grid Margin="16">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <ui:TextBlock Grid.Row="0"
-                                  Grid.Column="0"
-                                  FontTypography="Body"
-                                  TextWrapping="Wrap">
-                        <Run Foreground="LimeGreen"
-                             Text="【个人向设置】"
-                             FontWeight="Bold" />
-                        <Run Text="检测到精英怪才聚集掉落物" />
-                    </ui:TextBlock>
-
-                    <ui:TextBlock Grid.Row="1"
-                                  Grid.Column="0"
-                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                                  Text="开启后，仅在战斗过程中检测到精英怪才触发聚集掉落物"
-                                  TextWrapping="Wrap" />
-
-                    <ui:ToggleSwitch Grid.Row="0"
-                                     Grid.RowSpan="2"
-                                     Grid.Column="2"
-                                     Margin="0,0,38,0"
-                                     IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
-                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelCheckElitePickUp, Mode=TwoWay}" />
-                </Grid>
-
-
-                <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
-
-                
             </StackPanel>
         </ui:CardExpander>
 
