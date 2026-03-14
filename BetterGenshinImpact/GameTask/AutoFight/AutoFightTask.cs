@@ -412,13 +412,6 @@ public class AutoFightTask : ISoloTask
         
         var delayTime = _finishDetectConfig.DelayTime;
         var detectDelayTime = _finishDetectConfig.DetectDelayTime;
-
-        async Task<bool> CheckFightFinishAfterSwitch()
-        {
-            return  fightEndFlag = fightEndFlag ||
-                                   (BearingSteelConfig.GetBearingSteelCheckAfterSwitch() && _taskParam.FightFinishDetectEnabled
-                                       && await CheckFightFinish(0, detectDelayTime));
-        }
         
         Avatar? guardianAvatar = null;
         if (!string.IsNullOrWhiteSpace(_taskParam.GuardianAvatar))
@@ -579,8 +572,7 @@ public class AutoFightTask : ISoloTask
                             image = CaptureToRectArea();
                             
                             await AutoFightSkill.EnsureGuardianSkill(guardianAvatar,lastCommand,lastFightName,
-                            _taskParam.GuardianAvatar,_taskParam.GuardianAvatarHold,5,cts2.Token,_taskParam.GuardianCombatSkip,_taskParam.BurstEnabled,
-                            async () =>await CheckFightFinishAfterSwitch());
+                            _taskParam.GuardianAvatar,_taskParam.GuardianAvatarHold,5,cts2.Token,_taskParam.GuardianCombatSkip,_taskParam.BurstEnabled);
                             
                             if (_taskParam.AutoCombatEq && guardianAvatar.ManualSkillCd == 0 && !cts2.Token.IsCancellationRequested)
                             {
@@ -872,7 +864,7 @@ public class AutoFightTask : ISoloTask
                         }
                         #endregion
                         
-                        command.Execute(combatScenes, lastCommand, async () =>await CheckFightFinishAfterSwitch());
+                        command.Execute(combatScenes, lastCommand);
                         //统计战斗人次
                         if (i == combatCommands.Count - 1 || command.Name != combatCommands[i + 1].Name)
                         {

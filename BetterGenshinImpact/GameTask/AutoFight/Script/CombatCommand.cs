@@ -79,7 +79,7 @@ public class CombatCommand
         return $"<CombatCommand {Name}, {Method}({Args}) (rounds {ActivatingRound})>";
     }
 
-    public void Execute(CombatScenes combatScenes, CombatCommand? lastCommand = null,Func<Task<bool>>? callback = null)
+    public void Execute(CombatScenes combatScenes, CombatCommand? lastCommand = null)
     {
         Avatar? avatar = null;
         if (Name == CombatScriptParser.CurrentAvatarName)
@@ -126,11 +126,6 @@ public class CombatCommand
                     avatar.Switch();
                 }
             }
-        }
-
-        if (callback?.Invoke().Result ?? false)
-        {
-            return;
         }
         Execute(avatar);
     }

@@ -564,7 +564,7 @@ namespace BetterGenshinImpact.GameTask.AutoFight
     {
         public static async Task EnsureGuardianSkill(Avatar guardianAvatar, CombatCommand command, string lastFightName,
             string guardianAvatarName, bool guardianAvatarHold, int retryCount, CancellationToken ct,bool guardianCombatSkip = false,
-            bool burstEnabled = false,Func<Task<bool>>? callback = null)
+            bool burstEnabled = false)
         {
             int attempt = 0;
 
@@ -574,10 +574,6 @@ namespace BetterGenshinImpact.GameTask.AutoFight
                 {
                     if (guardianAvatar.TrySwitch(14, false))
                     {
-                        if (callback?.Invoke().Result ?? false)
-                        {
-                            return;
-                        }
                         guardianAvatar.ManualSkillCd = -1;
                         if (await AvatarSkillAsync(Logger, guardianAvatar, false, 1, ct))
                         {

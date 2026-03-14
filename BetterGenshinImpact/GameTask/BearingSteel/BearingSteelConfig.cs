@@ -21,22 +21,12 @@ public partial class BearingSteelConfig : ObservableObject
     [ObservableProperty] 
     private bool _bearingSteelAutoSkill = true;
     
-
-    
-    
     [ObservableProperty] 
     private bool _bearingSteelReduceWait = true;
     
-
-    
-    
-    [ObservableProperty]
-    private bool _bearingSteelCheckAfterSwitch = true;
-    
     [ObservableProperty]
     private bool _bearingSteelAvatarCD = true;
-
-
+    
     public static bool GetBearingSteelConfigEnable()
     {
         return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelConfigEnable;
@@ -49,12 +39,6 @@ public partial class BearingSteelConfig : ObservableObject
         && TaskContext.Instance().Config.BearingSteelConfig.BearingSteelReduceWait;
     }
 
-    
-    public static bool GetBearingSteelCheckAfterSwitch()
-    {
-        return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelConfigEnable
-        && TaskContext.Instance().Config.BearingSteelConfig.BearingSteelCheckAfterSwitch;
-    }
     public static bool GetBearingSteelAvatarCD()
     {
         return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelConfigEnable
