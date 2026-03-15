@@ -58,7 +58,7 @@ public class Avatar
     {
         get
         {
-            if (BearingSteelConfig.GetBearingSteelAvatarCD())
+            if (BearingSteelConfig.GetBearingSteelAvatarCd())
             {
                 return OcrSkillCds.TryGetValue(Name, out var cd) ? cd : DateTime.MinValue;
             }
@@ -85,7 +85,7 @@ public class Avatar
     {
         get
         {
-            if (BearingSteelConfig.GetBearingSteelAvatarCD())
+            if (BearingSteelConfig.GetBearingSteelAvatarCd())
             {
                 return LastSkillTimes.TryGetValue(Name, out var cd) ? cd : DateTime.MinValue;
             }
@@ -326,6 +326,7 @@ public class Avatar
             ThrowWhenDefeated(region, Ct);
 
             // 切换成功
+            // 原版偶现的切人没成功误以为成功，配置过就先临时换个方法
             if (BearingSteelConfig.GetBearingSteelConfigEnable())
             {
                 var image = CaptureToRectArea();
@@ -350,6 +351,7 @@ public class Avatar
                     return true;
                 }
             }
+            else
             if (CombatScenes.GetActiveAvatarIndex(region, context) == Index)
             {
                 // if (needLog && i > 0)
@@ -611,7 +613,7 @@ public class Avatar
         {
             OcrSkillCd = DateTime.UtcNow.AddSeconds(cd);
         }
-        if (cd == 0 && BearingSteelConfig.GetBearingSteelAvatarCD())
+        if (cd == 0 && BearingSteelConfig.GetBearingSteelAvatarCd())
         {
             OcrSkillCd = DateTime.MinValue;
             LastSkillTime = DateTime.MinValue;

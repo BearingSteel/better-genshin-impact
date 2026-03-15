@@ -726,8 +726,7 @@ public class AutoFightTask : ISoloTask
             return;
         }
 
-        if (BearingSteelConfig.GetBearingSteelCheckElitePickUp())
-            await ocrTask;
+
         
         if (BearingSteelConfig.GetBearingSteelCheckElitePickUp() && !containElite)
         {
@@ -860,16 +859,31 @@ public class AutoFightTask : ISoloTask
                     
                     if (forcePickup || !shouldSkip)
                     {
-                        Logger.LogInformation("使用 枫原万叶-长E 拾取掉落物");
+                        Logger.LogInformation("使用 枫原万叶-长E 拾取掉落物{x}", containElite);
+                        if (BearingSteelConfig.GetBearingSteelCheckElitePickUp())
+                            await ocrTask;
+                        // 原本聚集掉落物之前要等待200ms是何意味？去掉也无所谓因为Avatar.TrySwitch会出手
+                        if(!BearingSteelConfig.GetBearingSteelReduceWait())
+                        await Delay(200, ct);
+                        await OcrEliteFull();
+                        //没开启精英检测直接捡，开启了就判断containElite
+                        if(containElite||!BearingSteelConfig.GetBearingSteelCheckElitePickUp())
                         if (picker.TrySwitch(10))
                         {
                             await Delay(50, ct);
+                            // 防止万叶祭礼剑或一命大招刷新E之后在空等，节约时间
                             picker.AfterUseSkill();
                             await picker.WaitSkillCd(ct);
+                            // 万叶滞空期间拾取不了，如果有配置过，就用更快的方案
+                            if(BearingSteelConfig.GetBearingSteelCheckElitePickUp())
+                            Simulation.SendInput.SimulateAction(GIActions.ElementalSkill, KeyType.Hold);
+                            else
                             picker.UseSkill(true);
-                            await Delay(50, ct);
                             Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
-                            await Delay(2000, ct);
+                            await Delay(1500, ct);
+                            // 配置过缩减等待的话，原本等待期间可以多拾取1000ms，现在补回来一点
+                            if (BearingSteelConfig.GetBearingSteelReduceWait())
+                                await Delay(500, ct);
                         }
                     }
                     else
@@ -974,6 +988,9 @@ public class AutoFightTask : ISoloTask
             }
         }
 
+        if (BearingSteelConfig.GetBearingSteelCheckElitePickUp())
+            await ocrTask;
+        
         if (_taskParam is { PickDropsAfterFightEnabled: true } )
         {
             // 执行扫描掉落物光柱并靠近的功能

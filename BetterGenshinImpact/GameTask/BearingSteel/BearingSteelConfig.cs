@@ -16,13 +16,13 @@ public partial class BearingSteelConfig : ObservableObject
 
     
     [ObservableProperty] 
-    private bool _bearingSteelConfigEnable = true ;
+    private bool _bearingSteelConfigEnable = false ;
     
     [ObservableProperty] 
-    private bool _bearingSteelAutoSkill = true;
+    private bool _bearingSteelAutoSkill = false;
     
     [ObservableProperty] 
-    private bool _bearingSteelAutoEatEgg = true;
+    private bool _bearingSteelAutoEatEgg = false;
     
     [ObservableProperty] 
     private bool _bearingSteelReduceWait = true;
@@ -31,10 +31,10 @@ public partial class BearingSteelConfig : ObservableObject
     private bool _bearingSteelCheckElitePickUp = true;
     
     [ObservableProperty]
-    private bool _bearingSteelCheckAfterSwitch = true;
+    private bool _bearingSteelCheckAfterSwitch = false;
     
     [ObservableProperty]
-    private bool _bearingSteelAvatarCD = true;
+    private bool _bearingSteelAvatarCd = true;
     
     [ObservableProperty]
     private int _bearingSteelOcrPeriod = 100;
@@ -78,10 +78,10 @@ public partial class BearingSteelConfig : ObservableObject
         return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelConfigEnable
         && TaskContext.Instance().Config.BearingSteelConfig.BearingSteelCheckAfterSwitch;
     }
-    public static bool GetBearingSteelAvatarCD()
+    public static bool GetBearingSteelAvatarCd()
     {
         return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelConfigEnable
-        && TaskContext.Instance().Config.BearingSteelConfig.BearingSteelAvatarCD;
+        && TaskContext.Instance().Config.BearingSteelConfig.BearingSteelAvatarCd;
     }
     public static int GetBearingSteelOcrPeriod()
     {
