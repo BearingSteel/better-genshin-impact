@@ -657,6 +657,11 @@ public class AutoFightTask : ISoloTask
                                 combatCommands.Add(new CombatCommand(avatar.Name, "e"));
                                 combatCommands.Add(new CombatCommand(avatar.Name, "e"));
                             }
+                            else if (avatar.Name == "希诺宁")
+                            {
+                                combatCommands.Add(new CombatCommand(avatar.Name, "e"));
+                                combatCommands.Add(new CombatCommand(avatar.Name, "attack(1.4)"));
+                            }
                             else
                             {
                                 combatCommands.Add(new CombatCommand(avatar.Name, isE));
@@ -677,6 +682,7 @@ public class AutoFightTask : ISoloTask
                         {
                             var imageRegion = CaptureToRectArea();
                             string current = combatScenes.CurrentAvatar()!;
+                            Logger.LogInformation("正在判断角色EQ可用性,i = {i}", i);
                             await AddCommand(imageRegion, 1, "e", current);
                             await AddCommand(imageRegion, 1, "q", current);
                             await AddCommand(imageRegion, 2, "e", current);

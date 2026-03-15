@@ -896,7 +896,7 @@
                             <Run Foreground="LimeGreen"
                                  Text="【个人向设置】"
                                  FontWeight="Bold" />
-                            <Run Text="不存在角色有可用EQ时候，切换到抗伤的坦克位 :" />
+                            <Run Text="不存在可用EQ时切换到抗伤的坦克位 :" />
                         </ui:TextBlock>
                         
                         <ui:TextBlock Grid.Row="3"

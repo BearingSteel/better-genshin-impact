@@ -735,11 +735,6 @@ namespace BetterGenshinImpact.GameTask.AutoFight
             {
                 var skillArea = AutoFightAssets.Instance.AvatarQRectListMap[index - 1];
                 using var grayImage = image.DeriveCrop(skillArea).SrcMat.CvtColor(ColorConversionCodes.BGR2GRAY);
-                var meanBrightness = Cv2.Mean(grayImage);
-                var avgBrightness = meanBrightness.Val0;
-                var threshold1 = avgBrightness * 0.9;
-                var threshold2 = avgBrightness * 2;
-                Cv2.Canny(grayImage, grayImage, threshold1: (float)threshold1, threshold2: (float)threshold2);
                 var circles = Cv2.HoughCircles(grayImage, HoughModes.Gradient, dp: 1.2, minDist: 20,
                         param1: 70, param2: 30, minRadius: 25, maxRadius: 34);
 
