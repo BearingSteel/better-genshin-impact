@@ -850,6 +850,8 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -880,6 +882,44 @@
                                    Margin="0,0,12,0"
                                    Command="{Binding OpenFightFolderCommand}"
                                    Content="打开目录" />
+
+       
+                        
+                        <ui:TextBlock Grid.Row="2"
+                                      Grid.Column="0"
+                                      Grid.ColumnSpan="3"
+                                      FontTypography="Body"
+                                      VerticalAlignment="Bottom"
+                                      HorizontalAlignment="Right"
+                                      Visibility="{Binding IsTankSelectionVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                      TextWrapping="Wrap">
+                            <Run Foreground="LimeGreen"
+                                 Text="【个人向设置】"
+                                 FontWeight="Bold" />
+                            <Run Text="不存在角色有可用EQ时候，切换到抗伤的坦克位 :" />
+                        </ui:TextBlock>
+                        
+                        <ui:TextBlock Grid.Row="3"
+                                      Grid.ColumnSpan="3"
+                                      Grid.Column="0"
+                                      VerticalAlignment="Top"
+                                      HorizontalAlignment="Right"
+                                      Visibility="{Binding IsTankSelectionVisible ,  Converter={StaticResource BooleanToVisibilityConverter}}"
+                                      Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                      Text="战斗策略以“自动EQ”结尾或首页=>个人向设置=>自动EQ开启才生效"
+                                      TextWrapping="Wrap" />
+                        <ComboBox Grid.Row="2"
+                                  Grid.RowSpan="2"
+                                  Grid.Column="3"
+                                  MaxWidth="80"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Left"
+                                  Margin="10,10,0,10"
+                                  Visibility="{Binding IsTankSelectionVisible,   Converter={StaticResource BooleanToVisibilityConverter}}"
+                                  ItemsSource="{Binding PathingConfig.AvatarIndexList}"
+                                  SelectedItem="{Binding PathingConfig.AutoFightConfig.TankAvatar, Mode=TwoWay}" />
+                        
+                        
                         <ComboBox Grid.Row="0"
                                   Grid.RowSpan="2"
                                   Grid.Column="3"
@@ -890,6 +930,9 @@
                             <b:Interaction.Triggers>
                                 <b:EventTrigger EventName="DropDownOpened">
                                     <b:InvokeCommandAction Command="{Binding StrategyDropDownOpenedCommand}" CommandParameter="Combat" />
+                                </b:EventTrigger>
+                                <b:EventTrigger EventName="SelectionChanged">
+                                    <b:InvokeCommandAction Command="{Binding StrategyChangedCommand}" />
                                 </b:EventTrigger>
                             </b:Interaction.Triggers>
                         </ComboBox>

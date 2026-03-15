@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Windows.System;
+using BetterGenshinImpact.GameTask.BearingSteel;
 using Wpf.Ui.Violeta.Controls;
 
 namespace BetterGenshinImpact.ViewModel.Pages.View;
@@ -66,6 +67,14 @@ public partial class ScriptGroupConfigViewModel : ObservableObject, IViewModel
     {
         AutoFightViewModel.OnStrategyDropDownOpened(type);
     }
+
+    [RelayCommand]
+    private void StrategyChanged()=>
+        OnPropertyChanged(nameof(IsTankSelectionVisible));
+
+    public bool IsTankSelectionVisible =>
+        BearingSteelConfig.GetBearingSteelAutoSkill(_pathingConfig.AutoFightConfig.StrategyName);
+        
 
     [RelayCommand]
     public void OnOpenLocalScriptRepo()

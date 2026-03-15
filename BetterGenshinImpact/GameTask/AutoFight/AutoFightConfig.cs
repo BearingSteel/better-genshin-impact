@@ -137,6 +137,9 @@ public partial class AutoFightConfig : ObservableObject
     private string _guardianAvatar = string.Empty;
     
     [ObservableProperty]
+    private string _tankAvatar =  string.Empty;
+    
+    [ObservableProperty]
     private bool _guardianCombatSkip = false;
     
     [ObservableProperty]

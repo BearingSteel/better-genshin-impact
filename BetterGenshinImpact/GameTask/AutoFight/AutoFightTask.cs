@@ -688,10 +688,21 @@ public class AutoFightTask : ISoloTask
 
                             if (i == combatCommands.Count - 1)
                             {
-                                Logger.LogInformation("当前无可用EQ，尝试按下前台角色Q，并等待0.4s");
-                                Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
-                                await Delay(200, ct);
-                                combatCommands.Add(new CombatCommand(current, "wait(0.2)"));
+                                int.TryParse(_taskParam.TankAvatar, out var Index);
+                                if (Index > 0)
+                                {
+                                    Logger.LogInformation("当前无可用EQ，尝试切换到{x}",Index);
+                                    await Delay(200, ct);
+                                    combatCommands.Add(new CombatCommand(combatScenes.SelectAvatar(Index).Name, "attack"));
+                                    combatCommands.Add(new CombatCommand(combatScenes.SelectAvatar(Index).Name, "click(middle)"));
+                                }
+                                else
+                                {
+                                    Logger.LogInformation("当前无可用EQ，未设置前台坦克，尝试按下前台角色Q，并等待0.4s");
+                                    Simulation.SendInput.SimulateAction(GIActions.ElementalBurst);
+                                    await Delay(200, ct);
+                                    combatCommands.Add(new CombatCommand(current, "wait(0.2)"));
+                                }
                             }
                         }
                     }
@@ -856,6 +867,13 @@ public class AutoFightTask : ISoloTask
                     // 如果配置了二次拾取，或者不满足跳过条件（上次是万叶且冷却时间>3秒），则执行拾取
                     bool shouldSkip = lastFightName == picker.Name && time.TotalSeconds > 3;
                     bool forcePickup = _taskParam.QinDoublePickUp;
+                    // 如果shouldSkip是true 说明万叶在前台，并且刚用了E不久
+                    // 这时候判断e cd，祭礼剑刷新了还是再捡一下
+                    // 没刷新了还是再捡一下
+                    if (shouldSkip && BearingSteelConfig.GetBearingSteelAvatarCd()&&picker.AfterUseSkill() == 0)
+                    { 
+                        shouldSkip = false;
+                    }
                     
                     if (forcePickup || !shouldSkip)
                     {
@@ -875,12 +893,19 @@ public class AutoFightTask : ISoloTask
                             if(BearingSteelConfig.GetBearingSteelAvatarCd())
                                 picker.AfterUseSkill();
                             await picker.WaitSkillCd(ct);
-                            // 万叶滞空期间拾取不了，如果有配置过，就用更快的方案
-                            if(BearingSteelConfig.GetBearingSteelCheckElitePickUp())
-                            Simulation.SendInput.SimulateAction(GIActions.ElementalSkill, KeyType.Hold);
+                            // 万叶滞空期间拾取不了，如果有配置过，就用更快下落的方案
+                            if (BearingSteelConfig.GetBearingSteelCheckElitePickUp())
+                            {
+                                // Simulation.SendInput.SimulateAction(GIActions.ElementalSkill, KeyType.Hold);
+                                Simulation.SendInput.SimulateAction(GIActions.NormalAttack, KeyType.KeyDown);
+                                await Delay(200, ct);
+                                Simulation.SendInput.SimulateAction(GIActions.NormalAttack, KeyType.KeyUp);
+                            }
                             else
-                            picker.UseSkill(true);
-                            Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
+                            {
+                                picker.UseSkill(true);
+                                Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
+                            }
                             await Delay(1500, ct);
                             // 配置过缩减等待的话，原本等待期间可以多拾取1000ms，现在补回来一点
                             if (BearingSteelConfig.GetBearingSteelReduceWait())
@@ -890,6 +915,13 @@ public class AutoFightTask : ISoloTask
                     else
                     {
                         Logger.LogInformation("距最近一次万叶出招，时间过短，跳过此次万叶拾取！");
+                        
+                        // 跳过此次万叶聚怪这个流程,但是不代表不需要拾取不需要时间,原本是有 PathExecutor.AfterMoveToTarget自带
+                        // 的1000ms延迟，被我们去掉延迟之后没时间捡狗粮了，这里加回来
+                        if (BearingSteelConfig.GetBearingSteelReduceWait())
+                        { 
+                            await Delay(1000, ct);
+                        }
                     }
                 }
                 else if (picker.Name == "琴")

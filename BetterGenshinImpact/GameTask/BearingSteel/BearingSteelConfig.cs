@@ -45,9 +45,11 @@ public partial class BearingSteelConfig : ObservableObject
         return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelConfigEnable;
     }
 
-    public static bool GetBearingSteelAutoSkill(string path)
+    public static bool GetBearingSteelAutoSkill(string pathOrName)
     {
-        if (path.ToUpper().EndsWith("\\自动EQ.TXT"))
+        if ("自动EQ".Equals(pathOrName.ToUpper()))
+            return true;
+        if (pathOrName.ToUpper().EndsWith("自动EQ.TXT"))
             return true;
         return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelConfigEnable
         && TaskContext.Instance().Config.BearingSteelConfig.BearingSteelAutoSkill;
