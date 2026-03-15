@@ -857,7 +857,7 @@
                                      Grid.Column="2"
                                      Margin="0,0,38,0"
                                      IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
-                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelAvatarCD, Mode=TwoWay}" />
+                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelAvatarCd, Mode=TwoWay}" />
                 </Grid>
 
             </StackPanel>
