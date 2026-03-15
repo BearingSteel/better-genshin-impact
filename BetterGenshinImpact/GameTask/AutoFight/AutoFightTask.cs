@@ -872,7 +872,8 @@ public class AutoFightTask : ISoloTask
                         {
                             await Delay(50, ct);
                             // 防止万叶祭礼剑或一命大招刷新E之后在空等，节约时间
-                            picker.AfterUseSkill();
+                            if(BearingSteelConfig.GetBearingSteelAvatarCd())
+                                picker.AfterUseSkill();
                             await picker.WaitSkillCd(ct);
                             // 万叶滞空期间拾取不了，如果有配置过，就用更快的方案
                             if(BearingSteelConfig.GetBearingSteelCheckElitePickUp())

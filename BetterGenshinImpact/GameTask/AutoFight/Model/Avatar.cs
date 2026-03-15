@@ -334,10 +334,10 @@ public class Avatar
                 var whiteCount = 0;
                 var minItem = new List<Vec3b>
                     {
-                        pixelColors.At<Vec3b>(260, 1862),
-                        pixelColors.At<Vec3b>(350, 1862),
-                        pixelColors.At<Vec3b>(440, 1862),
-                        pixelColors.At<Vec3b>(530, 1862)
+                        pixelColors.At<Vec3b>(267, 1862),
+                        pixelColors.At<Vec3b>(358, 1862),
+                        pixelColors.At<Vec3b>(449, 1862),
+                        pixelColors.At<Vec3b>(540, 1862)
                     }
                     .Select((item, index) =>
                     {
