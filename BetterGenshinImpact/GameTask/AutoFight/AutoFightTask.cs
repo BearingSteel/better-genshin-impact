@@ -873,20 +873,12 @@ public class AutoFightTask : ISoloTask
                     // 如果配置了二次拾取，或者不满足跳过条件（上次是万叶且冷却时间>3秒），则执行拾取
                     bool shouldSkip = lastFightName == picker.Name && time.TotalSeconds > 3;
                     bool forcePickup = _taskParam.QinDoublePickUp;
-                    // 如果shouldSkip是true 说明万叶在前台，并且刚用了E不久
-                    // 这时候判断e cd，祭礼剑刷新了还是再捡一下
-                    // 没刷新了还是再捡一下
-                    if (shouldSkip && BearingSteelConfig.GetBearingSteelAvatarCd()&&picker.AfterUseSkill() == 0)
-                    { 
-                        shouldSkip = false;
-                    }
-                    
                     if (forcePickup || !shouldSkip)
                     {
                         Logger.LogInformation("使用 枫原万叶-长E 拾取掉落物{x}", containElite);
                         if (BearingSteelConfig.GetBearingSteelCheckElitePickUp())
                             await ocrTask;
-                        // 原本聚集掉落物之前要等待200ms是何意味？去掉也无所谓因为Avatar.TrySwitch会出手
+                        // 原本切万叶之前要等待200ms是何意味？去掉也无所谓因为Avatar.TrySwitch会出手
                         if(!BearingSteelConfig.GetBearingSteelReduceWait())
                         await Delay(200, ct);
                         await OcrEliteFull();
@@ -901,17 +893,10 @@ public class AutoFightTask : ISoloTask
                             await picker.WaitSkillCd(ct);
                             // 万叶滞空期间拾取不了，如果有配置过，就用更快下落的方案
                             if (BearingSteelConfig.GetBearingSteelCheckElitePickUp())
-                            {
-                                // Simulation.SendInput.SimulateAction(GIActions.ElementalSkill, KeyType.Hold);
-                                Simulation.SendInput.SimulateAction(GIActions.NormalAttack, KeyType.KeyDown);
-                                await Delay(200, ct);
-                                Simulation.SendInput.SimulateAction(GIActions.NormalAttack, KeyType.KeyUp);
-                            }
+                                Simulation.SendInput.SimulateAction(GIActions.ElementalSkill, KeyType.Hold);
                             else
-                            {
                                 picker.UseSkill(true);
-                                Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
-                            }
+                            Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
                             await Delay(1500, ct);
                             // 配置过缩减等待的话，原本等待期间可以多拾取1000ms，现在补回来一点
                             if (BearingSteelConfig.GetBearingSteelReduceWait())
