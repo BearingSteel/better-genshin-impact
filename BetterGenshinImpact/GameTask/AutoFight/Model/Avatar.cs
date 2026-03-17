@@ -9,6 +9,8 @@ using BetterGenshinImpact.Helpers;
 using Microsoft.Extensions.Logging;
 using OpenCvSharp;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +26,7 @@ using BetterGenshinImpact.GameTask.AutoGeniusInvokation.Model;
 using BetterGenshinImpact.GameTask.AutoPathing;
 using BetterGenshinImpact.GameTask.AutoPathing.Model;
 using BetterGenshinImpact.GameTask.AutoPathing.Model.Enum;
+using BetterGenshinImpact.GameTask.BearingSteel;
 
 namespace BetterGenshinImpact.GameTask.AutoFight.Model;
 
@@ -50,7 +53,24 @@ public class Avatar
     /// <summary>
     /// 最近一次OCR识别出的CD到期时间
     /// </summary>
-    private DateTime OcrSkillCd { get; set; }
+    private DateTime OcrSkillCd
+    {
+        get
+        {
+            if (BearingSteelConfig.GetBearingSteelAvatarCd())
+            {
+                return OcrSkillCds.TryGetValue(Name, out var cd) ? cd : DateTime.MinValue;
+            }
+            return _ocrSkillCd;
+        }
+        set
+        {
+            _ocrSkillCd = value;
+            OcrSkillCds[Name] = value;
+        }
+    }
+    private DateTime _ocrSkillCd;  
+    private static readonly ConcurrentDictionary<string, DateTime> OcrSkillCds = new ConcurrentDictionary<string, DateTime>();
 
     /// <summary>
     /// 手动配置的技能CD，有它就不使用OCR,小于0为自动
@@ -60,7 +80,24 @@ public class Avatar
     /// <summary>
     /// 最近一次使用元素战技的时间
     /// </summary>
-    public DateTime LastSkillTime { get; set; }
+    public DateTime LastSkillTime
+    {
+        get
+        {
+            if (BearingSteelConfig.GetBearingSteelAvatarCd())
+            {
+                return LastSkillTimes.TryGetValue(Name, out var cd) ? cd : DateTime.MinValue;
+            }
+            return _lastSkillTime;
+        }
+        set
+        {
+            _lastSkillTime = value;
+            LastSkillTimes[Name] = value;
+        }
+    }
+    private DateTime _lastSkillTime;  
+    private static readonly ConcurrentDictionary<string, DateTime> LastSkillTimes = new ConcurrentDictionary<string, DateTime>();
 
     /// <summary>
     /// 元素爆发是否就绪
@@ -115,6 +152,15 @@ public class Avatar
             // 先打开地图
             Simulation.SendInput.Keyboard.KeyPress(User32.VK.VK_ESCAPE); // NOTE: 此处按下Esc是为了关闭复苏界面，无需改键
             Sleep(600, ct);
+            if (BearingSteelConfig.GetBearingSteelAutoEatEgg())
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    if (BearingSteelUtil.CheckHp()) 
+                        return;
+                    Sleep(50, ct);
+                }
+            }
             TpForRecover(ct, new RetryException("检测到复苏界面，存在角色被击败，前往七天神像复活"));
         }
         else if(AutoFightParam.SwimmingEnabled && AutoFightTask.FightStatusFlag && SwimmingConfirm(region))
@@ -219,10 +265,13 @@ public class Avatar
 
             using var region = CaptureToRectArea();
             ThrowWhenDefeated(region, Ct);
-
             // 切换成功
             if (CombatScenes.GetActiveAvatarIndex(region, context) == Index)
             {
+                
+                // bearingsteel 切人出来立刻检查残血自动吃药
+                BearingSteelUtil.CheckHp();
+                
                 return;
             }
 
@@ -253,6 +302,35 @@ public class Avatar
             ThrowWhenDefeated(region, Ct);
 
             // 切换成功
+            // 原版偶现的切人没成功误以为成功，配置过就先临时换个方法
+            if (BearingSteelConfig.GetBearingSteelConfigEnable())
+            {
+                var image = CaptureToRectArea();
+                var pixelColors = image.SrcMat;
+                var whiteCount = 0;
+                var pixels = new List<Vec3b>
+                {
+                    pixelColors.At<Vec3b>(267, 1862),
+                    pixelColors.At<Vec3b>(358, 1862),
+                    pixelColors.At<Vec3b>(449, 1862),
+                    pixelColors.At<Vec3b>(540, 1862)
+                };
+                var minItem = pixels
+                    .Select((item, index) =>
+                    {
+                        if (item.Item0 + item.Item2 + item.Item0 == 255 * 3)
+                            whiteCount++;
+                        return new { Sum = item.Item0 + item.Item1 + item.Item2, Index = index };
+                    })
+                    .MinBy(x => x.Sum);
+                if (whiteCount == 3 && Index == (minItem == null ? 0 : minItem.Index + 1))
+                {
+                    Logger.LogInformation("切换{i}成功{x},{y},{z}", Index, pixels[Index - 1].Item0, pixels[Index - 1].Item1,
+                        pixels[Index - 1].Item2);
+                    return true;
+                }
+            }
+            else
             if (CombatScenes.GetActiveAvatarIndex(region, context) == Index)
             {
                 // if (needLog && i > 0)
@@ -513,6 +591,11 @@ public class Avatar
         if (cd > 0 && cd <= CombatAvatar.SkillCd)
         {
             OcrSkillCd = DateTime.UtcNow.AddSeconds(cd);
+        }
+        if (cd == 0 && BearingSteelConfig.GetBearingSteelAvatarCd())
+        {
+            OcrSkillCd = DateTime.MinValue;
+            LastSkillTime = DateTime.MinValue;
         }
 
         return cd;

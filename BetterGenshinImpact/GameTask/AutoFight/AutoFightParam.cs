@@ -47,6 +47,7 @@ public class AutoFightParam : BaseTaskParam<AutoFightTask>
         FinishDetectConfig.BattleEndProgressBarColorTolerance = TaskContext.Instance().Config.AutoFightConfig.FinishDetectConfig.BattleEndProgressBarColorTolerance;
 
         GuardianAvatar = autoFightConfig.GuardianAvatar;
+        TankAvatar = autoFightConfig.TankAvatar;
         GuardianCombatSkip = autoFightConfig.GuardianCombatSkip;
         GuardianAvatarHold = autoFightConfig.GuardianAvatarHold;
         BurstEnabled = autoFightConfig.BurstEnabled;
@@ -73,6 +74,7 @@ public class AutoFightParam : BaseTaskParam<AutoFightTask>
     public string KazuhaPartyName;
     public string OnlyPickEliteDropsMode = "";
     public string GuardianAvatar { get; set; } = string.Empty;
+    public string TankAvatar { get; set; } = string.Empty;
     public bool GuardianCombatSkip { get; set; } = false;
     public bool GuardianAvatarHold = false;
     
@@ -136,6 +138,7 @@ public class AutoFightParam : BaseTaskParam<AutoFightTask>
         FinishDetectConfig.BattleEndProgressBarColorTolerance = autoFightConfig.FinishDetectConfig.BattleEndProgressBarColorTolerance;
 
         GuardianAvatar = autoFightConfig.GuardianAvatar;
+        TankAvatar = autoFightConfig.TankAvatar;
         GuardianCombatSkip = autoFightConfig.GuardianCombatSkip;
         GuardianAvatarHold = autoFightConfig.GuardianAvatarHold;
         SwimmingEnabled = autoFightConfig.SwimmingEnabled;

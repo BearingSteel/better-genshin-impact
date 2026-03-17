@@ -35,6 +35,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Windows.System;
+using BetterGenshinImpact.GameTask.BearingSteel;
 using Wpf.Ui;
 using Wpf.Ui.Violeta.Controls;
 using TextBox = Wpf.Ui.Controls.TextBox;
@@ -279,6 +280,14 @@ public partial class TaskSettingsPageViewModel : ViewModel
     {
         AutoFightViewModel?.OnStrategyDropDownOpened(type);
     }
+    
+    [RelayCommand]
+    private void StrategyChanged()=>
+        OnPropertyChanged(nameof(IsTankSelectionVisible));
+
+    public bool IsTankSelectionVisible =>
+        BearingSteelConfig.GetBearingSteelAutoSkill(Config.AutoFightConfig.StrategyName);
+
 
     [RelayCommand]
     public void OnGoToHotKeyPage()

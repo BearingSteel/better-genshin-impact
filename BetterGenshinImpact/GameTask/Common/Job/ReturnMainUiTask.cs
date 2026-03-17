@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using BetterGenshinImpact.Core.BgiVision;
 using BetterGenshinImpact.Core.Simulator;
+using BetterGenshinImpact.GameTask.BearingSteel;
 using BetterGenshinImpact.GameTask.Common.BgiVision;
 using BetterGenshinImpact.GameTask.Common.Element.Assets;
 using Vanara.PInvoke;
@@ -18,6 +19,18 @@ public class ReturnMainUiTask
         if (Bv.IsInMainUi(CaptureToRectArea()))
         {
             return;
+        }
+        if (BearingSteelConfig.GetBearingSteelConfigEnable())
+        {
+            for (var i = 0; i < 8; i++)
+            {
+                await Delay(100, ct);
+                if (Bv.IsInMainUi(CaptureToRectArea()))
+                {
+                    await Delay(100, ct);
+                    return;
+                }
+            }
         }
 
         for (var i = 0; i < 8; i++)
