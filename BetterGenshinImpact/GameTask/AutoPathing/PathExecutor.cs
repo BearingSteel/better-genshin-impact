@@ -611,17 +611,6 @@ public class PathExecutor
         return false;
     }
     
-    // bearingsteel 行走位自动吃药
-    private async Task<bool> TryEatTask()
-    {
-        if (!BearingSteelConfig.GetBearingSteelAutoEatEgg())
-            return false;
-        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
-        await Delay(200, ct);
-        Logger.LogInformation("残血按Z吃药x2");
-        return true;
-    }
-    
     private async Task RecoverWhenLowHp(WaypointForTrack waypoint)
     {
         if (PartyConfig.OnlyInTeleportRecover && waypoint.Type != WaypointType.Teleport.Code)
@@ -633,7 +622,7 @@ public class PathExecutor
         // bearingsteel 行走位自动吃药
         if (Bv.CurrentAvatarIsLowHp(region)
             && !(await TryPartyHealing() && Bv.CurrentAvatarIsLowHp(region))
-            && !(await TryEatTask() && await TryEatTask() && Bv.CurrentAvatarIsLowHp(region))
+            && !((BearingSteelUtil.CheckHp()||BearingSteelUtil.CheckHp()) && Bv.CurrentAvatarIsLowHp(region))
             )
         {
             Logger.LogInformation("当前角色血量过低，去七天神像恢复");
@@ -641,7 +630,7 @@ public class PathExecutor
             throw new RetryException("回血完成后重试路线");
         }
         else if (Bv.ClickIfInReviveModal(region)
-                 && !(await TryEatTask() && await TryEatTask() && await TryEatTask() && Bv.ClickIfInReviveModal(region))
+                 && !((BearingSteelUtil.CheckHp()||BearingSteelUtil.CheckHp()) && Bv.ClickIfInReviveModal(region))
                 )
         {
             await Bv.WaitForMainUi(ct); // 等待主界面加载完成

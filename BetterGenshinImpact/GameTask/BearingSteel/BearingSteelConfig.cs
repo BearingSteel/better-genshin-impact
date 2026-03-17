@@ -89,4 +89,8 @@ public partial class BearingSteelConfig : ObservableObject
     {
         return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelOcrPeriod;
     }
+    
+            
+    
+
 }

@@ -26,7 +26,10 @@ public class ReturnMainUiTask
             {
                 await Delay(100, ct);
                 if (Bv.IsInMainUi(CaptureToRectArea()))
+                {
+                    await Delay(100, ct);
                     return;
+                }
             }
         }
 

@@ -693,12 +693,12 @@
                         <Run Foreground="LimeGreen"
                              Text="【个人向设置】"
                              FontWeight="Bold" />
-                        <Run Text="[OCR]自动吃料理" />
+                        <Run Text="[OCR]战斗中自动吃料理" />
                     </ui:TextBlock>
                     <ui:TextBlock Grid.Row="1"
                                   Grid.Column="0"
                                   Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                                  Text="开启后行走或战斗中红血自动吃料理，切阵亡角色时吃复活药"
+                                  Text="装备便携食物袋时，战斗中周期性检查红血和复活，自动吃料理"
                                   TextWrapping="Wrap" />
                     <ui:ToggleSwitch Grid.Row="0"
                                      Grid.RowSpan="2"

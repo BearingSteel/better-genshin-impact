@@ -25,9 +25,12 @@ using BetterGenshinImpact.GameTask.AutoPathing.Handler;
 using BetterGenshinImpact.GameTask.AutoPick.Assets;
 using BetterGenshinImpact.Core.Recognition;
 using BetterGenshinImpact.Core.Recognition.OCR;
+using BetterGenshinImpact.GameTask.AutoEat;
+using BetterGenshinImpact.GameTask.AutoEat.Assets;
 using BetterGenshinImpact.GameTask.BearingSteel;
 using BetterGenshinImpact.GameTask.Common.Element.Assets;
 using BetterGenshinImpact.GameTask.Common;
+using BetterGenshinImpact.GameTask.Common.BgiVision;
 
 namespace BetterGenshinImpact.GameTask.AutoFight;
 
@@ -310,40 +313,8 @@ public class AutoFightTask : ISoloTask
                                   (BearingSteelConfig.GetBearingSteelCheckAfterSwitch() && _taskParam.FightFinishDetectEnabled
                                    && await CheckFightFinish(0, detectDelayTime));
         }
-
-        async Task OcrHp()
-        {
-            if (!BearingSteelConfig.GetBearingSteelAutoEatEgg())
-                return;
-            var imageRegion = CaptureToRectArea();
-            var textRect = new Rect((int)(880 * _assetScale), (int)(999 * _assetScale),
-                (int)(160 * _assetScale), (int)(22 * _assetScale));
-            var textMat = new Mat(imageRegion.SrcMat, textRect);
-            Scalar White = new Scalar(255, 255, 255);
-            Mat whiteMask = new Mat();
-            Cv2.InRange(textMat, White, White, whiteMask);
-            Mat blackMask = new Mat();
-            Cv2.BitwiseNot(whiteMask, blackMask);
-            var text = OcrFactory.Paddle.Ocr(blackMask).ReplaceLineEndings("").Replace(" ", "");
-            string pattern = @"^(\d+)/(\d+)$";
-            Match match = Regex.Match(text, pattern);
-            if (match.Success)
-            {
-                uint n1 = uint.Parse(match.Groups[1].Value);
-                uint n2 = uint.Parse(match.Groups[2].Value);
-                if (n2 < 150000 && n1 <= n2 * 0.3)
-                {
-                    Logger.LogInformation("残血: {text}", text);
-                    Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
-                    await Delay(100, ct);
-                    Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
-                }
-            }
-
-            imageRegion.Dispose();
-        }
-
-        async Task OcrEliteFull()
+        
+        void OcrEliteFull()
         {
             if (!BearingSteelConfig.GetBearingSteelCheckElitePickUp())
                 return;
@@ -360,9 +331,10 @@ public class AutoFightTask : ISoloTask
                 var matchService = OcrFactory.PaddleMatch;
                 var threshold = TaskContext.Instance().Config.OtherConfig.OcrConfig.OcrMatchDefaultThreshold;
                 containElite = containElite || matchService.OcrMatch(textMat, "6") > threshold ||
-                               matchService.OcrMatch(textMat, "5") > threshold;
+                               matchService.OcrMatch(textMat, "5") > threshold ||
+                               Regex.IsMatch(OcrFactory.Paddle.Ocr(textMat), "57|59|60");
                 if (containElite)
-                    Logger.LogInformation("识别到精英: {a}", OcrFactory.Paddle.Ocr(textMat).ReplaceLineEndings(" "));
+                    Logger.LogInformation("识别到精英");
             }
 
             imageRegion.Dispose();
@@ -384,13 +356,16 @@ public class AutoFightTask : ISoloTask
                 var period = BearingSteelConfig.GetBearingSteelOcrPeriod();
                 while (!cts2.Token.IsCancellationRequested)
                 {
-                    await OcrHp();
+                    BearingSteelUtil.CheckHp();
+                    BearingSteelUtil.CheckHp();
+                    BearingSteelUtil.CheckHp();
+                    BearingSteelUtil.CheckHp();
                     await Delay(period, ct);
-                    await OcrEliteFull();
+                    OcrEliteFull();
 
                     if (fightEndFlag)
                     {
-                        await OcrEliteFull();
+                        OcrEliteFull();
                         return;
                     }
                 }
@@ -880,27 +855,32 @@ public class AutoFightTask : ISoloTask
                             await ocrTask;
                         // 原本切万叶之前要等待200ms是何意味？去掉也无所谓因为Avatar.TrySwitch会出手
                         if(!BearingSteelConfig.GetBearingSteelReduceWait())
-                        await Delay(200, ct);
-                        await OcrEliteFull();
+                            await Delay(200, ct);
+                        OcrEliteFull();
                         //没开启精英检测直接捡，开启了就判断containElite
-                        if(containElite||!BearingSteelConfig.GetBearingSteelCheckElitePickUp())
-                        if (picker.TrySwitch(10))
+                        if ((containElite || !BearingSteelConfig.GetBearingSteelCheckElitePickUp())
+                            && picker.TrySwitch(10))
                         {
                             await Delay(50, ct);
                             // 防止万叶祭礼剑或一命大招刷新E之后在空等，节约时间
-                            if(BearingSteelConfig.GetBearingSteelAvatarCd())
+                            if (BearingSteelConfig.GetBearingSteelAvatarCd() ||
+                                BearingSteelConfig.GetBearingSteelReduceWait())
                                 picker.AfterUseSkill();
                             await picker.WaitSkillCd(ct);
-                            // 万叶滞空期间拾取不了，如果有配置过，就用更快下落的方案
-                            if (BearingSteelConfig.GetBearingSteelCheckElitePickUp())
-                                Simulation.SendInput.SimulateAction(GIActions.ElementalSkill, KeyType.Hold);
+                            // 万叶滞空期间拾取不了，时间不要浪费在空中，快点下落吧
+                            if (BearingSteelConfig.GetBearingSteelReduceWait())
+                            {
+                                Simulation.SendInput.SimulateAction(GIActions.ElementalSkill, KeyType.KeyDown);
+                                await Delay(600, ct);
+                                Simulation.SendInput.SimulateAction(GIActions.ElementalSkill, KeyType.KeyUp);
+                            }
                             else
                                 picker.UseSkill(true);
                             Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
                             await Delay(1500, ct);
-                            // 配置过缩减等待的话，原本等待期间可以多拾取1000ms，现在补回来一点
+                            // 前面缩短长按时间,以及AfterMoveToTarget里面也缩短了可以用来拾取的延迟，现在补到这里来，
                             if (BearingSteelConfig.GetBearingSteelReduceWait())
-                                await Delay(500, ct);
+                                await Delay(1000, ct);
                         }
                     }
                     else

@@ -149,37 +149,19 @@ public class Avatar
     {
         if (Bv.IsInRevivePrompt(region))
         {
-            // 切人检测到复活自动吃复活药
-            if (BearingSteelConfig.GetBearingSteelAutoEatEgg())
-            {
-                Logger.LogInformation("{x}","检测到复苏界面，存在角色被击败，尝试吃煎蛋");
-                var ra = region.Find(ElementAssets.Instance.BtnWhiteConfirm);
-                if (ra.IsExist())
-                {
-                    ra.Click();
-                    Sleep(100, ct);
-                    if (!CaptureToRectArea().Find(ElementAssets.Instance.BtnWhiteConfirm).IsExist())
-                    {
-                        Sleep(300, ct);
-                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
-                        Sleep(50, ct);
-                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
-                        Sleep(50, ct);
-                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
-                        Sleep(50, ct);
-                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
-                        Sleep(50, ct);
-                        Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
-                        Logger.LogInformation("按Z吃药x5");
-                        return;
-                    }
-                }
-            }
-            
             Logger.LogWarning("检测到复苏界面，存在角色被击败，前往七天神像复活");
             // 先打开地图
             Simulation.SendInput.Keyboard.KeyPress(User32.VK.VK_ESCAPE); // NOTE: 此处按下Esc是为了关闭复苏界面，无需改键
             Sleep(600, ct);
+            if (BearingSteelConfig.GetBearingSteelAutoEatEgg())
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    if (BearingSteelUtil.CheckHp()) 
+                        return;
+                    Sleep(50, ct);
+                }
+            }
             TpForRecover(ct, new RetryException("检测到复苏界面，存在角色被击败，前往七天神像复活"));
         }
         else if(AutoFightParam.SwimmingEnabled && AutoFightTask.FightStatusFlag && SwimmingConfirm(region))
@@ -284,18 +266,13 @@ public class Avatar
 
             using var region = CaptureToRectArea();
             ThrowWhenDefeated(region, Ct);
-            
-            // bearingsteel 切人出来残血自动吃药
-            if (BearingSteelConfig.GetBearingSteelAutoEatEgg())
-                if (Bv.CurrentAvatarIsLowHp(region))
-                {
-                    Simulation.SendInput.SimulateAction(GIActions.QuickUseGadget);
-                    Logger.LogInformation("按Z吃药x1");
-                }
-            
             // 切换成功
             if (CombatScenes.GetActiveAvatarIndex(region, context) == Index)
             {
+                
+                // bearingsteel 切人出来立刻检查残血自动吃药
+                BearingSteelUtil.CheckHp();
+                
                 return;
             }
 
@@ -332,13 +309,14 @@ public class Avatar
                 var image = CaptureToRectArea();
                 var pixelColors = image.SrcMat;
                 var whiteCount = 0;
-                var minItem = new List<Vec3b>
-                    {
-                        pixelColors.At<Vec3b>(267, 1862),
-                        pixelColors.At<Vec3b>(358, 1862),
-                        pixelColors.At<Vec3b>(449, 1862),
-                        pixelColors.At<Vec3b>(540, 1862)
-                    }
+                var pixels = new List<Vec3b>
+                {
+                    pixelColors.At<Vec3b>(267, 1862),
+                    pixelColors.At<Vec3b>(358, 1862),
+                    pixelColors.At<Vec3b>(449, 1862),
+                    pixelColors.At<Vec3b>(540, 1862)
+                };
+                var minItem = pixels
                     .Select((item, index) =>
                     {
                         if (item.Item0 + item.Item2 + item.Item0 == 255 * 3)
@@ -348,6 +326,8 @@ public class Avatar
                     .MinBy(x => x.Sum);
                 if (whiteCount == 3 && Index == (minItem == null ? 0 : minItem.Index + 1))
                 {
+                    Logger.LogInformation("切换{i}成功{x},{y},{z}", Index, pixels[Index - 1].Item0, pixels[Index - 1].Item1,
+                        pixels[Index - 1].Item2);
                     return true;
                 }
             }
