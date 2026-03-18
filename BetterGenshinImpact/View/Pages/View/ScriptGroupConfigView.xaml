@@ -852,6 +852,8 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -919,6 +921,43 @@
                                   ItemsSource="{Binding PathingConfig.AvatarIndexList}"
                                   SelectedItem="{Binding PathingConfig.AutoFightConfig.TankAvatar, Mode=TwoWay}" />
                         
+                               
+                        
+                        <ui:TextBlock Grid.Row="4"
+                                      Grid.Column="0"
+                                      Grid.ColumnSpan="3"
+                                      FontTypography="Body"
+                                      VerticalAlignment="Bottom"
+                                      HorizontalAlignment="Right"
+                                      Visibility="{Binding IsTankSelectionVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                      TextWrapping="Wrap">
+                            <Run Foreground="LimeGreen"
+                                 Text="【个人向设置】"
+                                 FontWeight="Bold" />
+                            <Run Text="检测自动EQ的顺序，例如“1E 2E 3E 4Q 1Q”" />
+                        </ui:TextBlock>
+                        
+                        <ui:TextBlock Grid.Row="5"
+                                      Grid.ColumnSpan="3"
+                                      Grid.Column="0"
+                                      VerticalAlignment="Top"
+                                      HorizontalAlignment="Right"
+                                      Visibility="{Binding IsTankSelectionVisible ,  Converter={StaticResource BooleanToVisibilityConverter}}"
+                                      Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                      Text="战斗策略以“自动EQ”结尾或首页=>个人向设置=>自动EQ开启才生效"
+                                      TextWrapping="Wrap" />
+                        
+                        <ui:TextBox Grid.Row="4"
+                                    Grid.RowSpan="2"
+                                    Grid.Column="3"
+                                    MinWidth="180"
+                                    MaxWidth="800"
+                                    Margin="10,10,0,10"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Left"
+                                    Visibility="{Binding IsTankSelectionVisible,   Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    Text="{Binding PathingConfig.AutoFightConfig.EqOrder, Mode=TwoWay}"
+                                    TextWrapping="Wrap" />
                         
                         <ComboBox Grid.Row="0"
                                   Grid.RowSpan="2"

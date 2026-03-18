@@ -354,9 +354,6 @@ public class AutoFightTask : ISoloTask
                 while (!cts2.Token.IsCancellationRequested)
                 {
                     BearingSteelUtil.CheckHp();
-                    BearingSteelUtil.CheckHp();
-                    BearingSteelUtil.CheckHp();
-                    BearingSteelUtil.CheckHp();
                     await Delay(period, ct);
                     OcrEliteFull();
 
@@ -639,8 +636,9 @@ public class AutoFightTask : ISoloTask
                                 combatCommands.Add(new CombatCommand(avatar.Name, isE));
                             }
                         }
-                        else if (isE == "q" &&
-                                 await AutoFightSkill.IsAvatarQSkillAsync(imageRegion, index, current == avatar.Name))
+                        else if (isE == "q" && current == avatar.Name
+                                     ? BearingSteelUtil.IsCurrentQ()
+                                     : await AutoFightSkill.IsAvatarQSkillAsync(imageRegion, index, false))
                         {
                             Logger.LogInformation("检测到{index}技能{isE}可用 ", avatar.Name, isE);
                             combatCommands.Add(new CombatCommand(avatar.Name, isE));
@@ -655,15 +653,13 @@ public class AutoFightTask : ISoloTask
                             var imageRegion = CaptureToRectArea();
                             string current = combatScenes.CurrentAvatar()!;
                             Logger.LogInformation("正在判断角色EQ可用性,i = {i}", i);
-                            await AddCommand(imageRegion, 1, "e", current);
-                            await AddCommand(imageRegion, 1, "q", current);
-                            await AddCommand(imageRegion, 2, "e", current);
-                            await AddCommand(imageRegion, 2, "q", current);
-                            await AddCommand(imageRegion, 3, "e", current);
-                            await AddCommand(imageRegion, 3, "q", current);
-                            await AddCommand(imageRegion, 4, "e", current);
-                            await AddCommand(imageRegion, 4, "q", current);
 
+                            foreach (var item in _taskParam.EqOrder.ToLower().Split(' '))
+                                if (item.Length == 2 && item[0] >= '1' && item[0] <= '4')
+                                    if (item[1] == 'e' || item[1] == 'q')
+                                        await AddCommand(imageRegion, item[0] - '0', item[1].ToString(), current);
+
+                            Simulation.SendInput.Mouse.MiddleButtonClick();
                             if (i == combatCommands.Count - 1)
                             {
                                 int.TryParse(_taskParam.TankAvatar, out var Index);
@@ -864,20 +860,11 @@ public class AutoFightTask : ISoloTask
                                 BearingSteelConfig.GetBearingSteelReduceWait())
                                 picker.AfterUseSkill();
                             await picker.WaitSkillCd(ct);
-                            // 万叶滞空期间拾取不了，时间不要浪费在空中，快点下落吧
-                            if (BearingSteelConfig.GetBearingSteelReduceWait())
-                            {
-                                Simulation.SendInput.SimulateAction(GIActions.ElementalSkill, KeyType.KeyDown);
-                                await Delay(600, ct);
-                                Simulation.SendInput.SimulateAction(GIActions.ElementalSkill, KeyType.KeyUp);
-                            }
-                            else
-                                picker.UseSkill(true);
+                            
+                            picker.UseSkill(true);
+                            await Delay(50, ct);
                             Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
                             await Delay(1500, ct);
-                            // 前面缩短长按时间,以及AfterMoveToTarget里面也缩短了可以用来拾取的延迟，现在补到这里来，
-                            if (BearingSteelConfig.GetBearingSteelReduceWait())
-                                await Delay(1000, ct);
                         }
                     }
                     else

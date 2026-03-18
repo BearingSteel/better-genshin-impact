@@ -88,4 +88,72 @@ public sealed class BearingSteelUtil
         imageRegion.Dispose();
         return false;
     }
+
+
+    public static bool IsCurrentQ()
+    {
+        var imageRegion = TaskControl.CaptureToRectArea();
+        Rect skillArea = new Rect(1766, 919, 106, 106);
+        Mat roi = new Mat(imageRegion.SrcMat, skillArea);
+
+        // 基础参数
+        int width = roi.Cols;
+        int height = roi.Rows;
+        int centerX = width / 2;
+        int centerY = height / 2;
+        int radiusOuter = Math.Min(width, height) / 2;
+        int radiusInner = radiusOuter - 6;
+        var indexer = roi.GetGenericIndexer<Vec3b>();
+
+        double[] sumOuter = { 0.0, 0.0, 0.0 };
+        double[] sumInner = { 0.0, 0.0, 0.0 };
+        int countInner = 0;
+        int countOuter = 0;
+        var r1 = radiusOuter * radiusOuter + radiusOuter;
+        var r2 = radiusOuter * radiusOuter - radiusOuter;
+        var r3 = radiusInner * radiusInner + radiusInner;
+        var r4 = radiusInner * radiusInner - radiusInner;
+        for (int y = 0; y < height; y += 2)
+        {
+            for (int x = 0; x < width; x += 2)
+            {
+                int distSq = (x - centerX) * (x - centerX) + (y - centerY) * (y - centerY);
+
+                if (distSq <= r1 && distSq >= r2)
+                {
+                    countOuter++;
+                    sumOuter[0] += indexer[y, x].Item0;
+                    sumOuter[1] += indexer[y, x].Item1;
+                    sumOuter[2] += indexer[y, x].Item2;
+                }
+
+                if (distSq <= r3 && distSq >= r4)
+                {
+                    countInner++;
+                    sumInner[0] += indexer[y, x].Item0;
+                    sumInner[1] += indexer[y, x].Item1;
+                    sumInner[2] += indexer[y, x].Item2;
+                }
+            }
+        }
+
+        double rate1 = (sumOuter[1] * countInner) / (sumInner[1] * countOuter);
+        double rate2 = (sumOuter[2] * countInner) / (sumInner[2] * countOuter);
+        double rate0 = (sumOuter[0] * countInner) / (sumInner[0] * countOuter);
+        if (rate0 > 1 && rate1 > 1 && rate2 > 1)
+        {
+            var textRect = new Rect(1780, 957, 80, 30);
+            var textMat = new Mat(imageRegion.SrcMat, textRect);
+            var text = OcrFactory.Paddle.Ocr(textMat);
+            return !Regex.IsMatch(text, @"\d");
+        }
+
+        if (rate0 < 1 && rate1 < 1 && rate2 < 1)
+        {
+            return false;
+        }
+
+        Logger.LogInformation("鉴定当前角色Q状态失败 {x} {a} {b} ", rate0, rate1, rate2);
+        return false;
+    }
 }

@@ -48,6 +48,7 @@ public class AutoFightParam : BaseTaskParam<AutoFightTask>
 
         GuardianAvatar = autoFightConfig.GuardianAvatar;
         TankAvatar = autoFightConfig.TankAvatar;
+        EqOrder = autoFightConfig.EqOrder;
         GuardianCombatSkip = autoFightConfig.GuardianCombatSkip;
         GuardianAvatarHold = autoFightConfig.GuardianAvatarHold;
         BurstEnabled = autoFightConfig.BurstEnabled;
@@ -75,6 +76,7 @@ public class AutoFightParam : BaseTaskParam<AutoFightTask>
     public string OnlyPickEliteDropsMode = "";
     public string GuardianAvatar { get; set; } = string.Empty;
     public string TankAvatar { get; set; } = string.Empty;
+    public string EqOrder { get; set; } = string.Empty;
     public bool GuardianCombatSkip { get; set; } = false;
     public bool GuardianAvatarHold = false;
     
@@ -139,6 +141,7 @@ public class AutoFightParam : BaseTaskParam<AutoFightTask>
 
         GuardianAvatar = autoFightConfig.GuardianAvatar;
         TankAvatar = autoFightConfig.TankAvatar;
+        EqOrder = autoFightConfig.EqOrder;
         GuardianCombatSkip = autoFightConfig.GuardianCombatSkip;
         GuardianAvatarHold = autoFightConfig.GuardianAvatarHold;
         SwimmingEnabled = autoFightConfig.SwimmingEnabled;

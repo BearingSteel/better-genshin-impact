@@ -140,6 +140,9 @@ public partial class AutoFightConfig : ObservableObject
     private string _tankAvatar =  string.Empty;
     
     [ObservableProperty]
+    private string _eqOrder =  "1E 2E 3E 4E 1Q 2Q 3Q 4Q";
+    
+    [ObservableProperty]
     private bool _guardianCombatSkip = false;
     
     [ObservableProperty]

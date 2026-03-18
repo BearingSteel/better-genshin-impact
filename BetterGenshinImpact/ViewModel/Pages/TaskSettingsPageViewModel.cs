@@ -284,6 +284,11 @@ public partial class TaskSettingsPageViewModel : ViewModel
     [RelayCommand]
     private void StrategyChanged()=>
         OnPropertyChanged(nameof(IsTankSelectionVisible));
+    
+    public override void OnNavigatedTo()
+    {
+        OnPropertyChanged(nameof(IsTankSelectionVisible));
+    }
 
     public bool IsTankSelectionVisible =>
         BearingSteelConfig.GetBearingSteelAutoSkill(Config.AutoFightConfig.StrategyName);
