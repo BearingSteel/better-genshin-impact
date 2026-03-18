@@ -865,6 +865,8 @@ public class AutoFightTask : ISoloTask
                             await Delay(50, ct);
                             Simulation.SendInput.SimulateAction(GIActions.NormalAttack);
                             await Delay(1500, ct);
+                            if(BearingSteelConfig.GetBearingSteelReduceWait())
+                                await Delay(800, ct);
                         }
                     }
                     else
