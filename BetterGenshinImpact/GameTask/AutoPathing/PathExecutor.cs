@@ -732,7 +732,8 @@ public class PathExecutor
     public async Task MoveTo(WaypointForTrack waypoint)
     {
         // 切人
-        await SwitchAvatar(PartyConfig.MainAvatarIndex);
+        if (!BearingSteelConfig.GetBearingSteelReduceWait())
+            await SwitchAvatar(PartyConfig.MainAvatarIndex);
 
         var screen = CaptureToRectArea();
         var (position, additionalTimeInMs) = await GetPositionAndTime(screen, waypoint);
@@ -749,6 +750,9 @@ public class PathExecutor
 
         // 按下w，一直走
         Simulation.SendInput.SimulateAction(GIActions.MoveForward, KeyType.KeyDown);
+        if (BearingSteelConfig.GetBearingSteelReduceWait())
+            Simulation.SendInput.Keyboard.KeyPress(User32.VK.VK_0 + byte.Parse(PartyConfig.MainAvatarIndex));
+
         while (!ct.IsCancellationRequested)
         {
             if (!Simulation.IsKeyDown(GIActions.MoveForward.ToActionKey().ToVK()))
