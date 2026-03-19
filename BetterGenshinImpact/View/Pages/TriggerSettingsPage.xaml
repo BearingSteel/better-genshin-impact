@@ -172,6 +172,49 @@
                             Content="前往设置" />
                     </StackPanel>
                 </Grid>
+
+                <StackPanel
+                    Visibility="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Margin="0,0,0,0">
+                    <Grid Margin="16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <ui:TextBlock Grid.Row="0"
+                                      Grid.Column="0"
+                                      FontTypography="Body"
+                                      VerticalAlignment="Bottom"
+                                      HorizontalAlignment="Left"
+                                      TextWrapping="Wrap">
+                            <Run Foreground="LimeGreen"
+                                 Text="【附加功能】"
+                                 FontWeight="Bold" />
+                            <Run Text="上述黑白名单启用正则表达式" />
+                        </ui:TextBlock>
+
+                        <ui:TextBlock Grid.Row="1"
+                                      Grid.Column="0"
+                                      Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                      Text="例如黑名单设置 .* 是啥也不捡，同时白名单设置 史莱姆.* 意味着拾取任意 “史莱姆” 开头的物品"
+                                      TextWrapping="Wrap" />
+
+                        <ui:ToggleSwitch
+                            Grid.Row="0"
+                            Grid.RowSpan="2"
+                            Grid.Column="1"
+                            Margin="0,0,12,0"
+                            IsChecked="{Binding Config.BearingSteelConfig.BearingSteelRegex, Mode=TwoWay}" />
+
+
+                    </Grid>
+                </StackPanel>
+                
                 <Grid Margin="16">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />

@@ -630,6 +630,7 @@ public class AutoFightTask : ISoloTask
                             {
                                 combatCommands.Add(new CombatCommand(avatar.Name, "e"));
                                 combatCommands.Add(new CombatCommand(avatar.Name, "attack(1.4)"));
+                                combatCommands.Add(new CombatCommand(avatar.Name, "e"));
                             }
                             else
                             {
@@ -643,6 +644,7 @@ public class AutoFightTask : ISoloTask
                             Logger.LogInformation("检测到{index}技能{isE}可用 ", avatar.Name, isE);
                             combatCommands.Add(new CombatCommand(avatar.Name, isE));
                         }
+                        combatCommands.Add(new CombatCommand(avatar.Name, "click(middle)"));
                     }
 
                     async Task AutoEQ(int i)

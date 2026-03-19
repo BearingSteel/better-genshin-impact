@@ -564,7 +564,7 @@
                                   Foreground="LimeGreen"
                                   FontWeight="Bold"
                                   TextWrapping="Wrap">
-                        <Run Text="个人向设置" />
+                        <Run Text="【附加功能】" />
                         <InlineUIContainer>
                             <Border Width="10" />
                         </InlineUIContainer>
@@ -588,7 +588,7 @@
                     <ui:TextBlock Grid.Row="1"
                                   Grid.Column="0"
                                   Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                                  Text="个人向设置，关闭之后四舍五入等于原版吧（或许）？？？"
+                                  Text="附加功能，关闭之后四舍五入等于原版吧（或许）？？？"
                                   TextWrapping="Wrap" />
                     <ui:ToggleSwitch Grid.Row="0"
                                      Grid.RowSpan="2"
@@ -617,7 +617,7 @@
                                   FontTypography="Body"
                                   TextWrapping="Wrap">
                         <Run Foreground="LimeGreen"
-                             Text="【个人向设置】"
+                             Text="【附加功能】"
                              FontWeight="Bold" />
                         <Run Text="执行完一遍战斗策略后进入自动EQ模式" />
                     </ui:TextBlock>
@@ -652,7 +652,7 @@
                                   FontTypography="Body"
                                   TextWrapping="Wrap">
                         <Run Foreground="LimeGreen"
-                             Text="【个人向设置】"
+                             Text="【附加功能】"
                              FontWeight="Bold" />
                         <Run Text="[OCR]检测到精英怪才聚集掉落物" />
                     </ui:TextBlock>
@@ -691,7 +691,7 @@
                                   FontTypography="Body"
                                   TextWrapping="Wrap">
                         <Run Foreground="LimeGreen"
-                             Text="【个人向设置】"
+                             Text="【附加功能】"
                              FontWeight="Bold" />
                         <Run Text="[OCR]战斗中自动吃料理" />
                     </ui:TextBlock>
@@ -721,7 +721,7 @@
                     </Grid.ColumnDefinitions>
 
                     <ui:TextBlock Grid.Column="0" VerticalAlignment="Center">
-                        <Run Foreground="LimeGreen" Text="【个人向设置】" FontWeight="Bold" />
+                        <Run Foreground="LimeGreen" Text="【附加功能】" FontWeight="Bold" />
                         <Run Text="↑↑↑↑↑ 上面两项中 文字识别间隔" />
                     </ui:TextBlock>
 
@@ -767,7 +767,7 @@
                                   FontTypography="Body"
                                   TextWrapping="Wrap">
                         <Run Foreground="LimeGreen"
-                             Text="【个人向设置】"
+                             Text="【附加功能】"
                              FontWeight="Bold" />
                         <Run Text="部分场景延迟减少" />
                     </ui:TextBlock>
@@ -803,7 +803,7 @@
                                   FontTypography="Body"
                                   TextWrapping="Wrap">
                         <Run Foreground="LimeGreen"
-                             Text="【个人向设置】"
+                             Text="【附加功能】"
                              FontWeight="Bold" />
                         <Run Text="切人成功后立刻识别一次战斗是否结束" />
                     </ui:TextBlock>
@@ -841,7 +841,7 @@
                                   FontTypography="Body"
                                   TextWrapping="Wrap">
                         <Run Foreground="LimeGreen"
-                             Text="【个人向设置】"
+                             Text="【附加功能】"
                              FontWeight="Bold" />
                         <Run Text="角色技能CD优化" />
                     </ui:TextBlock>

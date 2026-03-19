@@ -153,6 +153,12 @@ public sealed class BearingSteelUtil
             return false;
         }
 
+        if ((rate0 > 1 ? 1 : 0) + (rate1 > 1 ? 1 : 0) + (rate2 > 1 ? 1 : 0) >= 2)
+        {
+            return false;
+        }
+        
+
         Logger.LogInformation("鉴定当前角色Q状态失败 {x} {a} {b} ", rate0, rate1, rate2);
         return false;
     }

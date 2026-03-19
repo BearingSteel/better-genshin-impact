@@ -18,6 +18,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
+using BetterGenshinImpact.GameTask.BearingSteel;
 using BetterGenshinImpact.GameTask.Model.Area;
 
 namespace BetterGenshinImpact.GameTask.AutoPick;
@@ -330,7 +331,9 @@ public partial class AutoPickTrigger : ITaskTrigger
                 return;
             }
 
-            if (config.WhiteListEnabled && _whiteList.Contains(text))
+            if (config.WhiteListEnabled && BearingSteelConfig.GetBearingSteelRegex()
+                    ? _whiteList.Any(item => Regex.IsMatch(text, item))
+                    : _whiteList.Contains(text))
             {
                 LogPick(content, text);
                 Simulation.SendInput.Keyboard.KeyPress(AutoPickAssets.Instance.PickVk);
@@ -347,14 +350,18 @@ public partial class AutoPickTrigger : ITaskTrigger
 
             if (config.BlackListEnabled)
             {
-                if (_blackList.Contains(text))
+                if (BearingSteelConfig.GetBearingSteelRegex()
+                        ? _blackList.Any(item => Regex.IsMatch(text, item))
+                        :_blackList.Contains(text))
                 {
                     return;
                 }
 
                 if (_fuzzyBlackList.Count > 0)
                 {
-                    if (_fuzzyBlackList.Any(item => text.Contains(item)))
+                    if (BearingSteelConfig.GetBearingSteelRegex()
+                            ? _fuzzyBlackList.Any(item => Regex.IsMatch(text, item))
+                            :_fuzzyBlackList.Any(item => text.Contains(item)))
                     {
                         return;
                     }

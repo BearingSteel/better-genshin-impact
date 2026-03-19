@@ -471,7 +471,7 @@
                                       Visibility="{Binding IsTankSelectionVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       TextWrapping="Wrap">
                             <Run Foreground="LimeGreen"
-                                 Text="【个人向设置】"
+                                 Text="【附加功能】"
                                  FontWeight="Bold" />
                             <Run Text="不存在可用EQ时切换到抗伤的坦克位 :" />
                         </ui:TextBlock>
@@ -483,7 +483,7 @@
                                       HorizontalAlignment="Right"
                                       Visibility="{Binding IsTankSelectionVisible ,  Converter={StaticResource BooleanToVisibilityConverter}}"
                                       Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                                      Text="战斗策略以“自动EQ”结尾或首页=>个人向设置=>自动EQ开启才生效"
+                                      Text="战斗策略以“自动EQ”结尾或首页=>附加功能=>自动EQ开启才生效"
                                       TextWrapping="Wrap" />
                         <ComboBox Grid.Row="2"
                                   Grid.RowSpan="2"
@@ -506,7 +506,7 @@
                                       Visibility="{Binding IsTankSelectionVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       TextWrapping="Wrap">
                             <Run Foreground="LimeGreen"
-                                 Text="【个人向设置】"
+                                 Text="【附加功能】"
                                  FontWeight="Bold" />
                             <Run Text="检测自动EQ的顺序，例如“1E 2E 3E 4Q 1Q”" />
                         </ui:TextBlock>
@@ -518,7 +518,7 @@
                                       HorizontalAlignment="Right"
                                       Visibility="{Binding IsTankSelectionVisible ,  Converter={StaticResource BooleanToVisibilityConverter}}"
                                       Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                                      Text="战斗策略以“自动EQ”结尾或首页=>个人向设置=>自动EQ开启才生效"
+                                      Text="战斗策略以“自动EQ”结尾或首页=>附加功能=>自动EQ开启才生效"
                                       TextWrapping="Wrap" />
                         
                         <ui:TextBox Grid.Row="4"
