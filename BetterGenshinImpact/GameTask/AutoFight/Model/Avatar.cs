@@ -20,6 +20,7 @@ using BetterGenshinImpact.GameTask.Common.BgiVision;
 using Vanara.PInvoke;
 using static BetterGenshinImpact.GameTask.Common.TaskControl;
 using BetterGenshinImpact.Core.Config;
+using BetterGenshinImpact.GameTask.AutoEat.Assets;
 using BetterGenshinImpact.GameTask.AutoFight.Assets;
 using BetterGenshinImpact.ViewModel.Pages;
 using BetterGenshinImpact.GameTask.AutoGeniusInvokation.Model;
@@ -27,6 +28,7 @@ using BetterGenshinImpact.GameTask.AutoPathing;
 using BetterGenshinImpact.GameTask.AutoPathing.Model;
 using BetterGenshinImpact.GameTask.AutoPathing.Model.Enum;
 using BetterGenshinImpact.GameTask.BearingSteel;
+using SixLabors.ImageSharp;
 
 namespace BetterGenshinImpact.GameTask.AutoFight.Model;
 
@@ -154,13 +156,17 @@ public class Avatar
             Sleep(600, ct);
             if (BearingSteelConfig.GetBearingSteelAutoEatEgg())
             {
-                for (int i = 0; i < 5; i++)
+                if (CaptureToRectArea().Find(AutoEatAssets.Instance.ResurrectionIconRa).IsExist())
                 {
-                    if (BearingSteelUtil.CheckHp()) 
+                    BearingSteelUtil.CheckHp();
+                    Sleep(200, ct);
+                    if (!CaptureToRectArea().Find(AutoEatAssets.Instance.ResurrectionIconRa).IsExist())
+                    {
                         return;
-                    Sleep(50, ct);
+                    }
                 }
             }
+            // 复活药没装配，或者复活药在CD
             TpForRecover(ct, new RetryException("检测到复苏界面，存在角色被击败，前往七天神像复活"));
         }
         else if(AutoFightParam.SwimmingEnabled && AutoFightTask.FightStatusFlag && SwimmingConfirm(region))

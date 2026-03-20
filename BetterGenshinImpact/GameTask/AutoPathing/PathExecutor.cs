@@ -732,8 +732,7 @@ public class PathExecutor
     public async Task MoveTo(WaypointForTrack waypoint)
     {
         // 切人
-        if (!BearingSteelConfig.GetBearingSteelReduceWait())
-            await SwitchAvatar(PartyConfig.MainAvatarIndex);
+        await SwitchAvatar(PartyConfig.MainAvatarIndex);
 
         var screen = CaptureToRectArea();
         var (position, additionalTimeInMs) = await GetPositionAndTime(screen, waypoint);
@@ -750,9 +749,6 @@ public class PathExecutor
 
         // 按下w，一直走
         Simulation.SendInput.SimulateAction(GIActions.MoveForward, KeyType.KeyDown);
-        if (BearingSteelConfig.GetBearingSteelReduceWait())
-            Simulation.SendInput.Keyboard.KeyPress(User32.VK.VK_0 + byte.Parse(PartyConfig.MainAvatarIndex));
-
         while (!ct.IsCancellationRequested)
         {
             if (!Simulation.IsKeyDown(GIActions.MoveForward.ToActionKey().ToVK()))
@@ -1126,6 +1122,12 @@ public class PathExecutor
             if (waypoint.Action == ActionEnum.Fight.Code)
             {
                 SuccessFight++;
+                
+                if (BearingSteelConfig.GetBearingSteelReduceWait())
+                {
+                    Logger.LogInformation("切换到行走位");
+                    await SwitchAvatar(PartyConfig.MainAvatarIndex);
+                }
             }
 
 
@@ -1157,7 +1159,8 @@ public class PathExecutor
         var success = avatar.TrySwitch(5);//多切换一次，否则如果切人纠正要等下一个循环
         if (success)
         {
-            await Delay(100, ct);
+            if(!BearingSteelConfig.GetBearingSteelReduceWait()) 
+                await Delay(100, ct);
             return avatar;
         }
 
