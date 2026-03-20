@@ -635,6 +635,79 @@
                 </Grid>
 
 
+                <Grid 
+                    Visibility="{Binding Config.BearingSteelConfig.BearingSteelAutoSkill, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBlock Grid.Row="0"
+                                  Grid.Column="0"
+                                  FontTypography="Body"
+                                  TextWrapping="Wrap">
+                        <Run Foreground="LimeGreen"
+                             Text="【附加功能】"
+                             FontWeight="Bold" />
+                        <Run Text="万叶一命" />
+                    </ui:TextBlock>
+                    <ui:TextBlock Grid.Row="1"
+                                  Grid.Column="0"
+                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                  Text="开启后在自动EQ模式中，万叶Q完，立即E一次，润滑充能不浪费"
+                                  TextWrapping="Wrap" />
+                    <ui:ToggleSwitch Grid.Row="0"
+                                     Grid.RowSpan="2"
+                                     Grid.Column="1"
+                                     Margin="0,0,38,0"
+                                     IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
+                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelKazuhaOne}" />
+                </Grid>
+                
+                
+                
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBlock Grid.Row="0"
+                                  Grid.Column="0"
+                                  FontTypography="Body"
+                                  TextWrapping="Wrap">
+                        <Run Foreground="LimeGreen"
+                             Text="【附加功能】"
+                             FontWeight="Bold" />
+                        <Run Text="角色技能CD优化" />
+                    </ui:TextBlock>
+
+                    <ui:TextBlock Grid.Row="1"
+                                  Grid.Column="0"
+                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                  Text="优化新进战斗时默认技能全部可用，实际可能还在cd导致的罚站&#10;尤其是护盾角色开盾罚站&#10;开启后在多人模式下使用自动EQ模式，原则上永远不会有这种罚站"
+                                  TextWrapping="Wrap" />
+
+                    <ui:ToggleSwitch Grid.Row="0"
+                                     Grid.RowSpan="2"
+                                     Grid.Column="2"
+                                     Margin="0,0,38,0"
+                                     IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
+                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelAvatarCd, Mode=TwoWay}" />
+                </Grid>
+
+
+
                 <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
                 <Grid Margin="16">
                     <Grid.RowDefinitions>
@@ -654,13 +727,13 @@
                         <Run Foreground="LimeGreen"
                              Text="【附加功能】"
                              FontWeight="Bold" />
-                        <Run Text="[OCR]检测到精英怪才聚集掉落物" />
+                        <Run Text="战斗中检测到精英怪才聚集掉落物" />
                     </ui:TextBlock>
 
                     <ui:TextBlock Grid.Row="1"
                                   Grid.Column="0"
                                   Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                                  Text="开启后，仅在战斗过程中检测到精英怪才触发聚集掉落物"
+                                  Text="开启后战斗中周期性检测检验世界8/9精英怪经验值掉落&#10;仅在战斗过程中检测到精英怪才触发聚集掉落物"
                                   TextWrapping="Wrap" />
 
                     <ui:ToggleSwitch Grid.Row="0"
@@ -672,9 +745,6 @@
                 </Grid>
 
 
-                <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
-
-
                 <Grid Margin="16">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -693,7 +763,7 @@
                         <Run Foreground="LimeGreen"
                              Text="【附加功能】"
                              FontWeight="Bold" />
-                        <Run Text="[OCR]战斗中自动吃料理" />
+                        <Run Text="自动吃料理" />
                     </ui:TextBlock>
                     <ui:TextBlock Grid.Row="1"
                                   Grid.Column="0"
@@ -709,9 +779,6 @@
                 </Grid>
 
 
-                <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
-
-
                 <Grid Margin="16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -722,7 +789,7 @@
 
                     <ui:TextBlock Grid.Column="0" VerticalAlignment="Center">
                         <Run Foreground="LimeGreen" Text="【附加功能】" FontWeight="Bold" />
-                        <Run Text="↑↑↑↑↑ 上面两项中 文字识别间隔" />
+                        <Run Text="↑↑↑↑↑ 上面两项的检测间隔" />
                     </ui:TextBlock>
 
                     <ui:TextBlock Grid.Column="1" Text="50" VerticalAlignment="Center" Margin="0,0,12,0" Opacity="0.6" />
@@ -821,45 +888,7 @@
                                      IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
                                      IsChecked="{Binding Config.BearingSteelConfig.BearingSteelCheckAfterSwitch, Mode=TwoWay}" />
                 </Grid>
-
-
-                <Separator Margin="-18,0" BorderThickness="0,1,0,0" />
-
-
-                <Grid Margin="16">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <ui:TextBlock Grid.Row="0"
-                                  Grid.Column="0"
-                                  FontTypography="Body"
-                                  TextWrapping="Wrap">
-                        <Run Foreground="LimeGreen"
-                             Text="【附加功能】"
-                             FontWeight="Bold" />
-                        <Run Text="角色技能CD优化" />
-                    </ui:TextBlock>
-
-                    <ui:TextBlock Grid.Row="1"
-                                  Grid.Column="0"
-                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                                  Text="优化新进战斗时默认技能全部可用实际还在cd导致的罚站"
-                                  TextWrapping="Wrap" />
-
-                    <ui:ToggleSwitch Grid.Row="0"
-                                     Grid.RowSpan="2"
-                                     Grid.Column="2"
-                                     Margin="0,0,38,0"
-                                     IsEnabled="{Binding Config.BearingSteelConfig.BearingSteelConfigEnable}"
-                                     IsChecked="{Binding Config.BearingSteelConfig.BearingSteelAvatarCd, Mode=TwoWay}" />
-                </Grid>
-
+                
             </StackPanel>
         </ui:CardExpander>
 

@@ -40,6 +40,9 @@ public partial class BearingSteelConfig : ObservableObject
     private int _bearingSteelOcrPeriod = 100;
     
     [ObservableProperty]
+    private bool _bearingSteelKazuhaOne = false;
+    
+    [ObservableProperty]
     private bool _bearingSteelRegex = true;
 
 
@@ -93,6 +96,11 @@ public partial class BearingSteelConfig : ObservableObject
         return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelOcrPeriod;
     }
     
+    public static bool GetBearingSteelKazuhaOne()
+    {
+        return TaskContext.Instance().Config.BearingSteelConfig.BearingSteelConfigEnable
+               && TaskContext.Instance().Config.BearingSteelConfig.BearingSteelKazuhaOne;
+    }     
        
     public static bool GetBearingSteelRegex()
     {

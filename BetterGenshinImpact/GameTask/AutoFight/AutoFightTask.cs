@@ -633,6 +633,12 @@ public class AutoFightTask : ISoloTask
                                 combatCommands.Add(new CombatCommand(avatar.Name, "attack(1.4)"));
                                 combatCommands.Add(new CombatCommand(avatar.Name, "e"));
                             }
+                            else if (avatar.Name == "欧洛伦")
+                            {
+                                combatCommands.Add(new CombatCommand(avatar.Name, "e"));
+                                combatCommands.Add(new CombatCommand(avatar.Name, "wait(0.2)"));
+                                combatCommands.Add(new CombatCommand(avatar.Name, "click(right)"));
+                            }
                             else
                             {
                                 combatCommands.Add(new CombatCommand(avatar.Name, isE));
@@ -644,6 +650,15 @@ public class AutoFightTask : ISoloTask
                         {
                             Logger.LogInformation("检测到{index}技能{isE}可用 ", avatar.Name, isE);
                             combatCommands.Add(new CombatCommand(avatar.Name, isE));
+                            if (avatar.Name == "枫原万叶")
+                            {
+                                if (BearingSteelConfig.GetBearingSteelKazuhaOne())
+                                {
+                                    combatCommands.Add(new CombatCommand(avatar.Name, "e(hold,0.6)"));
+                                    combatCommands.Add(new CombatCommand(avatar.Name, "attack(0.6)"));
+                                    combatCommands.Add(new CombatCommand(avatar.Name, "wait(0.2)"));
+                                }
+                            }
                         }
                         combatCommands.Add(new CombatCommand(avatar.Name, "click(middle)"));
                     }
