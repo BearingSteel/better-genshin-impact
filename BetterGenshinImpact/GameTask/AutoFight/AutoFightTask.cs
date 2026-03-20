@@ -440,6 +440,7 @@ public class AutoFightTask : ISoloTask
                         // bearingsteel 盾奶位连招不含战技时候不会自动跳过执行
                         #region 技能组合是否含元素战技
                         bool commandWithSkill = false;
+                        if(BearingSteelConfig.GetBearingSteelConfigEnable()){
                         for (int j = 0; i+j < combatCommands.Count; j++)
                         {
                             var commandCompare =  combatCommands[i+j];
@@ -472,7 +473,7 @@ public class AutoFightTask : ISoloTask
                                 break;
                             }
                         }
-                        
+                        }
 
                         
                         #endregion
@@ -490,7 +491,7 @@ public class AutoFightTask : ISoloTask
                                  // 且未跳过(成功执行)了,则不进行跳过判定
                                  skipFightName == "")
                             &&
-                            commandWithSkill &&
+                            (commandWithSkill || !BearingSteelConfig.GetBearingSteelConfigEnable()) &&
                             // 且这次执行的角色包含在可跳过的角色列表中
                             (allCanBeSkipped || canBeSkippedAvatarNames.Contains(command.Name))
                            )
