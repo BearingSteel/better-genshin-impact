@@ -140,26 +140,15 @@ public sealed class BearingSteelUtil
         double rate1 = (sumOuter[1] * countInner) / (sumInner[1] * countOuter);
         double rate2 = (sumOuter[2] * countInner) / (sumInner[2] * countOuter);
         double rate0 = (sumOuter[0] * countInner) / (sumInner[0] * countOuter);
-        if (rate0 > 1 && rate1 > 1 && rate2 > 1)
+
+        Logger.LogInformation("鉴定前台角色Q {a:f3} {b:f3} {c:f3} ", rate0, rate1, rate2);
+        if ((rate0 > 1 ? 1 : 0) + (rate1 > 1 ? 1 : 0) + (rate2 > 1 ? 1 : 0) >= 2)
         {
             var textRect = new Rect(1780, 957, 80, 30);
             var textMat = new Mat(imageRegion.SrcMat, textRect);
             var text = OcrFactory.Paddle.Ocr(textMat);
             return !Regex.IsMatch(text, @"\d");
         }
-
-        if (rate0 < 1 && rate1 < 1 && rate2 < 1)
-        {
-            return false;
-        }
-
-        if ((rate0 > 1 ? 1 : 0) + (rate1 > 1 ? 1 : 0) + (rate2 > 1 ? 1 : 0) >= 2)
-        {
-            return false;
-        }
-        
-
-        Logger.LogInformation("鉴定当前角色Q状态失败 {x} {a} {b} ", rate0, rate1, rate2);
         return false;
     }
 }
