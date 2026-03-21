@@ -633,12 +633,6 @@ public class AutoFightTask : ISoloTask
                                 combatCommands.Add(new CombatCommand(avatar.Name, "attack(1.4)"));
                                 combatCommands.Add(new CombatCommand(avatar.Name, "e"));
                             }
-                            else if (avatar.Name == "欧洛伦")
-                            {
-                                combatCommands.Add(new CombatCommand(avatar.Name, "e"));
-                                combatCommands.Add(new CombatCommand(avatar.Name, "wait(0.2)"));
-                                combatCommands.Add(new CombatCommand(avatar.Name, "click(right)"));
-                            }
                             else
                             {
                                 combatCommands.Add(new CombatCommand(avatar.Name, isE));
