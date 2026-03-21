@@ -410,6 +410,7 @@ public class AutoFightTask : ISoloTask
 
                     for (var i = 0; i < combatCommands.Count; await AutoEQ(i), i++)
                     {
+                        Logger.LogInformation("for i= {i}   {j}  {ka}  {k}"  ,i,combatCommands[i].Name,combatCommands[i].Method.Alias[0],combatCommands[i].Args);
                         var command = combatCommands[i];
                         var lastCommand = i == 0 ? command : combatCommands[i - 1];
                         
@@ -637,6 +638,7 @@ public class AutoFightTask : ISoloTask
                             {
                                 combatCommands.Add(new CombatCommand(avatar.Name, isE));
                             }
+                            combatCommands.Add(new CombatCommand(avatar.Name, "click(middle)"));
                         }
                         else if (isE == "q" && current == avatar.Name
                                      ? BearingSteelUtil.IsCurrentQ()
@@ -653,8 +655,8 @@ public class AutoFightTask : ISoloTask
                                     combatCommands.Add(new CombatCommand(avatar.Name, "wait(0.2)"));
                                 }
                             }
+                            combatCommands.Add(new CombatCommand(avatar.Name, "click(middle)"));
                         }
-                        combatCommands.Add(new CombatCommand(avatar.Name, "click(middle)"));
                     }
 
                     async Task AutoEQ(int i)
