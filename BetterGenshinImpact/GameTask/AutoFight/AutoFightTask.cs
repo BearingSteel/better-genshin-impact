@@ -874,10 +874,10 @@ public class AutoFightTask : ISoloTask
                         {
                             await Delay(50, ct);
                             // 防止万叶祭礼剑或一命大招刷新E之后在空等，节约时间
-                            if (BearingSteelConfig.GetBearingSteelAvatarCd() ||
-                                BearingSteelConfig.GetBearingSteelReduceWait())
-                                picker.AfterUseSkill();
-                            await picker.WaitSkillCd(ct);
+                            if (!((BearingSteelConfig.GetBearingSteelAvatarCd() ||
+                                   BearingSteelConfig.GetBearingSteelReduceWait()) &&
+                                  Avatar.CheckForegroundAvatarSkillAvailableByOcr()))
+                                await picker.WaitSkillCd(ct);
                             
                             picker.UseSkill(true);
                             await Delay(50, ct);

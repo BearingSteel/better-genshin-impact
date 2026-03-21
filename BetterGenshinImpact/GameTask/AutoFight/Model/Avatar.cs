@@ -583,6 +583,16 @@ public class Avatar
         return GetSkillCurrentCd(region);
     }
 
+
+    public static bool CheckForegroundAvatarSkillAvailableByOcr()
+    {
+        using var eRa = CaptureToRectArea().DeriveCrop(AutoFightAssets.Instance.ECooldownRect);
+        using var eRaWhite = OpenCvCommonHelper.InRangeHsv(eRa.SrcMat, new Scalar(0, 0, 235), new Scalar(0, 25, 255));
+        var text = OcrFactory.Paddle.OcrWithoutDetector(eRaWhite);
+        var cd = StringUtils.TryParseDouble(text);
+        return cd == 0;
+    }
+
     /// <summary>
     /// 元素战技是否正在CD中
     /// 右下 267x132
@@ -597,11 +607,6 @@ public class Avatar
         if (cd > 0 && cd <= CombatAvatar.SkillCd)
         {
             OcrSkillCd = DateTime.UtcNow.AddSeconds(cd);
-        }
-        if (cd == 0 && BearingSteelConfig.GetBearingSteelAvatarCd())
-        {
-            OcrSkillCd = DateTime.MinValue;
-            LastSkillTime = DateTime.MinValue;
         }
 
         return cd;
