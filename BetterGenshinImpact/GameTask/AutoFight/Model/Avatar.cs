@@ -331,8 +331,8 @@ public class Avatar
                     .MinBy(x => x.Sum);
                 if (whiteCount == 3 && Index == (minItem == null ? 0 : minItem.Index + 1))
                 {
-                    Logger.LogInformation("切换{i}成功{x},{y},{z}", Index, pixels[Index - 1].Item0, pixels[Index - 1].Item1,
-                        pixels[Index - 1].Item2);
+                    // Logger.LogInformation("切换{i}成功{x},{y},{z}", Index, pixels[Index - 1].Item0, pixels[Index - 1].Item1,
+                    //     pixels[Index - 1].Item2);
                     return true;
                 }
             }

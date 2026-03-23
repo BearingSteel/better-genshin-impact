@@ -410,7 +410,6 @@ public class AutoFightTask : ISoloTask
 
                     for (var i = 0; i < combatCommands.Count; await AutoEQ(i), i++)
                     {
-                        Logger.LogInformation("for i= {i}   {j}  {ka}  {k}"  ,i,combatCommands[i].Name,combatCommands[i].Method.Alias[0],combatCommands[i].Args);
                         var command = combatCommands[i];
                         var lastCommand = i == 0 ? command : combatCommands[i - 1];
                         
